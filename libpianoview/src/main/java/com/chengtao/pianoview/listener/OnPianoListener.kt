@@ -1,12 +1,8 @@
-package com.chengtao.pianoview.listener;
+package com.chengtao.pianoview.listener
 
+import com.chengtao.pianoview.entity.Piano.PianoKeyType
 
-import com.chengtao.pianoview.entity.Piano;
-
-public interface OnPianoListener {
-
-    void onPianoInitFinish();
-
-    void onPianoClick(Piano.PianoKeyType type, int group,
-                      int positionOfGroup);
+interface OnPianoListener {
+    fun onPianoInitFinish()
+    fun onPianoClick(type: PianoKeyType, group: Int, index: Int)
 }

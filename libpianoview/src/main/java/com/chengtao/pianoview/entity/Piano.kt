@@ -1,249 +1,191 @@
-package com.chengtao.pianoview.entity;
+package com.chengtao.pianoview.entity
 
-import android.content.Context;
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.ScaleDrawable;
-import android.view.Gravity;
-
-import androidx.core.content.ContextCompat;
-
-import com.chengtao.pianoview.R;
-
-import java.util.ArrayList;
+import android.content.Context
+import android.graphics.Rect
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.ScaleDrawable
+import android.view.Gravity
+import androidx.core.content.ContextCompat
+import com.chengtao.pianoview.R
+import kotlin.math.sqrt
 
 
-public class Piano {
-    public final static int PIANO_NUMS = 88;
-    private final static int BLACK_PIANO_KEY_GROUPS = 8;
-    private final static int WHITE_PIANO_KEY_GROUPS = 9;
-    private ArrayList<PianoKey[]> blackPianoKeys = new ArrayList<>(BLACK_PIANO_KEY_GROUPS);
-    private ArrayList<PianoKey[]> whitePianoKeys = new ArrayList<>(WHITE_PIANO_KEY_GROUPS);
-    private int blackKeyWidth;
-    private int blackKeyHeight;
-    private int whiteKeyWidth;
-    private int whiteKeyHeight;
-    private int pianoWith = 0;
+class Piano(private val context: Context, private val scale: Float) {
+    val blackPianoKeys: MutableList<List<PianoKey>> = mutableListOf()
+    val whitePianoKeys: MutableList<List<PianoKey>> = mutableListOf()
+    private var blackKeyWidth = 0
+    private var blackKeyHeight = 0
+    private var whiteKeyWidth = 0
+    private var whiteKeyHeight = 0
+    var pianoWith = 0
 
-    private float scale;
-    private Context context;
-
-    public Piano(Context context, float scale) {
-        this.context = context;
-        this.scale = scale;
-        initPiano();
+    init {
+        initPiano()
     }
 
-    private void initPiano() {
-        if (scale > 0) {
-            Drawable blackDrawable = ContextCompat.getDrawable(context, R.drawable.black_piano_key);
-            Drawable whiteDrawable = ContextCompat.getDrawable(context, R.drawable.white_piano_key);
-            blackKeyWidth = blackDrawable.getIntrinsicWidth();
-            //TODO blackKeyWidth = (int) (blackDrawable.getIntrinsicWidth() * scale);
-            blackKeyHeight = (int) (blackDrawable.getIntrinsicHeight() * scale);
-            whiteKeyWidth = whiteDrawable.getIntrinsicWidth();
-            //TODO whiteKeyWidth = (int) (whiteDrawable.getIntrinsicWidth() * scale);
-            whiteKeyHeight = (int) (whiteDrawable.getIntrinsicHeight() * scale);
 
-            for (int i = 0; i < BLACK_PIANO_KEY_GROUPS; i++) {
-                PianoKey[] keys;
-                if (i == 0) {
-                    keys = new PianoKey[1];
-                } else {
-                    keys = new PianoKey[5];
+    private fun initPiano() {
+        if (scale > 0) {
+            val blackDrawable = ContextCompat.getDrawable(context, R.drawable.black_piano_key)
+            val whiteDrawable = ContextCompat.getDrawable(context, R.drawable.white_piano_key)
+            val yInches = context.resources.displayMetrics.heightPixels / context.resources.displayMetrics.ydpi
+            val xInches = context.resources.displayMetrics.widthPixels / context.resources.displayMetrics.xdpi
+            val diagonalInches = sqrt((xInches * xInches + yInches * yInches).toDouble())
+            blackKeyWidth = blackDrawable!!.intrinsicWidth
+            blackKeyWidth = (blackDrawable.intrinsicWidth * xInches / 4.7).toInt()
+            blackKeyHeight = (blackDrawable.intrinsicHeight * scale).toInt()
+            whiteKeyWidth = whiteDrawable!!.intrinsicWidth
+            whiteKeyWidth = (whiteDrawable.intrinsicWidth * xInches / 4.7).toInt()
+            whiteKeyHeight = (whiteDrawable.intrinsicHeight * scale).toInt()
+            for (group in 0 until 8) {
+                val keys: List<PianoKey> = List(if (group == 0) 1 else 5) { index ->
+                    val key = PianoKey(
+                        PianoKeyType.BLACK,
+                        group,
+                        index,
+                        ScaleDrawable(
+                            ContextCompat.getDrawable(context, R.drawable.black_piano_key),
+                            Gravity.NO_GRAVITY, scale, scale
+                        ).drawable!!,
+                        getVoiceFromResources("b$group$index")
+                    )
+                    setBlackKeyDrawableBounds(group, index, key.keyDrawable)
+                    key.areaOfKey = listOf(key.keyDrawable.bounds)
+                    key
                 }
-                for (int j = 0; j < keys.length; j++) {
-                    keys[j] = new PianoKey();
-                    Rect[] areaOfKey = new Rect[1];
-                    keys[j].setType(PianoKeyType.BLACK);
-                    keys[j].setGroup(i);
-                    keys[j].setIndex(j);
-                    keys[j].setVoiceId(getVoiceFromResources("b" + i + j));
-                    keys[j].setPressed(false);
-                    keys[j].setKeyDrawable(
-                            new ScaleDrawable(ContextCompat.getDrawable(context, R.drawable.black_piano_key),
-                                    Gravity.NO_GRAVITY, scale, scale).getDrawable());
-                    setBlackKeyDrawableBounds(i, j, keys[j].getKeyDrawable());
-                    areaOfKey[0] = keys[j].getKeyDrawable().getBounds();
-                    keys[j].setAreaOfKey(areaOfKey);
-                }
-                blackPianoKeys.add(keys);
+                blackPianoKeys.add(keys)
             }
-            for (int i = 0; i < WHITE_PIANO_KEY_GROUPS; i++) {
-                PianoKey[] mKeys;
-                switch (i) {
-                    case 0:
-                        mKeys = new PianoKey[2];
-                        break;
-                    case 8:
-                        mKeys = new PianoKey[1];
-                        break;
-                    default:
-                        mKeys = new PianoKey[7];
-                        break;
-                }
-                for (int j = 0; j < mKeys.length; j++) {
-                    mKeys[j] = new PianoKey();
-                    mKeys[j].setType(PianoKeyType.WHITE);
-                    mKeys[j].setGroup(i);
-                    mKeys[j].setIndex(j);
-                    mKeys[j].setVoiceId(getVoiceFromResources("w" + i + j));
-                    mKeys[j].setPressed(false);
-                    mKeys[j].setKeyDrawable(
-                            new ScaleDrawable(ContextCompat.getDrawable(context, R.drawable.white_piano_key),
-                                    Gravity.NO_GRAVITY, scale, scale).getDrawable());
-                    setWhiteKeyDrawableBounds(i, j, mKeys[j].getKeyDrawable());
-                    pianoWith += whiteKeyWidth;
-                    if (i == 0) {
-                        switch (j) {
-                            case 0:
-                                mKeys[j].setAreaOfKey(getWhitePianoKeyArea(i, j, BlackKeyPosition.RIGHT));
-                                mKeys[j].setLetterName("A0");
-                                break;
-                            case 1:
-                                mKeys[j].setAreaOfKey(getWhitePianoKeyArea(i, j, BlackKeyPosition.LEFT));
-                                mKeys[j].setLetterName("B0");
-                                break;
+            for (group in 0 until 9) {
+                val keys: List<PianoKey> = List(
+                    when (group) {
+                        0 -> 2
+                        8 -> 1
+                        else -> 7
+                    }
+                ) { index ->
+                    pianoWith += whiteKeyWidth
+                    val key = PianoKey(
+                        PianoKeyType.WHITE,
+                        group,
+                        index,
+                        ScaleDrawable(
+                            ContextCompat.getDrawable(context, R.drawable.white_piano_key),
+                            Gravity.NO_GRAVITY, scale, scale
+                        ).drawable!!,
+                        getVoiceFromResources("w$group$index")
+                    )
+                    setWhiteKeyDrawableBounds(group, index, key.keyDrawable)
+                    when (group) {
+                        0 -> when (index) {
+                            0 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.RIGHT)
+                            1 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT)
                         }
-                        continue;
+
+                        8 -> key.areaOfKey = listOf(key.keyDrawable.bounds)
+                        else -> when (index) {
+                            0 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.RIGHT)
+                            1 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT_RIGHT)
+                            2 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT)
+                            3 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.RIGHT)
+                            4 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT_RIGHT)
+                            5 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT_RIGHT)
+                            6 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT)
+                        }
                     }
-                    if (i == 8) {
-                        Rect[] areaOfKey = new Rect[1];
-                        areaOfKey[0] = mKeys[j].getKeyDrawable().getBounds();
-                        mKeys[j].setAreaOfKey(areaOfKey);
-                        mKeys[j].setLetterName("C8");
-                        break;
-                    }
-                    switch (j) {
-                        case 0:
-                            mKeys[j].setAreaOfKey(getWhitePianoKeyArea(i, j, BlackKeyPosition.RIGHT));
-                            mKeys[j].setLetterName("C" + i);
-                            break;
-                        case 1:
-                            mKeys[j].setAreaOfKey(getWhitePianoKeyArea(i, j, BlackKeyPosition.LEFT_RIGHT));
-                            mKeys[j].setLetterName("D" + i);
-                            break;
-                        case 2:
-                            mKeys[j].setAreaOfKey(getWhitePianoKeyArea(i, j, BlackKeyPosition.LEFT));
-                            mKeys[j].setLetterName("E" + i);
-                            break;
-                        case 3:
-                            mKeys[j].setAreaOfKey(getWhitePianoKeyArea(i, j, BlackKeyPosition.RIGHT));
-                            mKeys[j].setLetterName("F" + i);
-                            break;
-                        case 4:
-                            mKeys[j].setAreaOfKey(getWhitePianoKeyArea(i, j, BlackKeyPosition.LEFT_RIGHT));
-                            mKeys[j].setLetterName("G" + i);
-                            break;
-                        case 5:
-                            mKeys[j].setAreaOfKey(getWhitePianoKeyArea(i, j, BlackKeyPosition.LEFT_RIGHT));
-                            mKeys[j].setLetterName("A" + i);
-                            break;
-                        case 6:
-                            mKeys[j].setAreaOfKey(getWhitePianoKeyArea(i, j, BlackKeyPosition.LEFT));
-                            mKeys[j].setLetterName("B" + i);
-                            break;
-                    }
+                    key
                 }
-                whitePianoKeys.add(mKeys);
+                whitePianoKeys.add(keys)
             }
         }
     }
 
-    public enum PianoKeyType {
-        BLACK(),
-        WHITE();
-
-        PianoKeyType() {}
+    enum class PianoKeyType {
+        BLACK, WHITE
     }
 
-    private enum BlackKeyPosition {
+    private enum class BlackKeyPosition {
         LEFT, LEFT_RIGHT, RIGHT
     }
 
-    private int getVoiceFromResources(String voiceName) {
-        return context.getResources().getIdentifier(voiceName, "raw", context.getPackageName());
+    private fun getVoiceFromResources(voiceName: String): Int {
+        return context.resources.getIdentifier(voiceName, "raw", context.packageName)
     }
 
-    private Rect[] getWhitePianoKeyArea(int group, int positionOfGroup,
-                                        BlackKeyPosition blackKeyPosition) {
-        int offset = 0;
-        if (group == 0) {
-            offset = 5;
-        }
-        switch (blackKeyPosition) {
-            case LEFT:
-                Rect[] left = new Rect[2];
-                left[0] =
-                        new Rect((7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth, blackKeyHeight,
-                                (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth + blackKeyWidth / 2,
-                                whiteKeyHeight);
-                left[1] =
-                        new Rect((7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth + blackKeyWidth / 2,
-                                0, (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth, whiteKeyHeight);
-                return left;
-            case LEFT_RIGHT:
-                Rect[] leftRight = new Rect[3];
-                leftRight[0] =
-                        new Rect((7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth, blackKeyHeight,
-                                (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth + blackKeyWidth / 2,
-                                whiteKeyHeight);
-                leftRight[1] =
-                        new Rect((7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth + blackKeyWidth / 2,
-                                0, (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth - blackKeyWidth / 2,
-                                whiteKeyHeight);
-                leftRight[2] =
-                        new Rect((7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth - blackKeyWidth / 2,
-                                blackKeyHeight, (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth,
-                                whiteKeyHeight);
-                return leftRight;
-            case RIGHT:
-                Rect[] right = new Rect[2];
-                right[0] = new Rect((7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth, 0,
+    private fun getWhitePianoKeyArea(
+        group: Int, positionOfGroup: Int,
+        blackKeyPosition: BlackKeyPosition
+    ): List<Rect> {
+        val offset = if (group == 0) 5 else 0
+        return when (blackKeyPosition) {
+            BlackKeyPosition.LEFT -> {
+                listOf(
+                    Rect(
+                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth, blackKeyHeight,
+                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth + blackKeyWidth / 2,
+                        whiteKeyHeight
+                    ),
+                    Rect(
+                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth + blackKeyWidth / 2,
+                        0, (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth, whiteKeyHeight
+                    )
+                )
+            }
+
+            BlackKeyPosition.LEFT_RIGHT -> {
+                listOf(
+                    Rect(
+                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth, blackKeyHeight,
+                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth + blackKeyWidth / 2,
+                        whiteKeyHeight
+                    ),
+                    Rect(
+                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth + blackKeyWidth / 2,
+                        0, (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth - blackKeyWidth / 2,
+                        whiteKeyHeight
+                    ),
+                    Rect(
                         (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth - blackKeyWidth / 2,
-                        whiteKeyHeight);
-                right[1] =
-                        new Rect((7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth - blackKeyWidth / 2,
-                                blackKeyHeight, (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth,
-                                whiteKeyHeight);
-                return right;
+                        blackKeyHeight, (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth,
+                        whiteKeyHeight
+                    )
+                )
+            }
+
+            BlackKeyPosition.RIGHT -> {
+                listOf(
+                    Rect(
+                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth, blackKeyHeight,
+                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth + blackKeyWidth / 2,
+                        whiteKeyHeight
+                    ),
+                    Rect(
+                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth + blackKeyWidth / 2,
+                        0, (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth, whiteKeyHeight
+                    )
+                )
+            }
         }
-        return null;
     }
 
-    private void setWhiteKeyDrawableBounds(int group, int positionOfGroup, Drawable drawable) {
-        int offset = 0;
-        if (group == 0) {
-            offset = 5;
-        }
-        drawable.setBounds((7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth, 0,
-                (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth, whiteKeyHeight);
+    private fun setWhiteKeyDrawableBounds(group: Int, positionOfGroup: Int, drawable: Drawable) {
+        val offset = if (group == 0) 5 else 0
+        drawable.setBounds(
+            (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth, 0,
+            (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth, whiteKeyHeight
+        )
     }
 
-    private void setBlackKeyDrawableBounds(int group, int positionOfGroup, Drawable drawable) {
-        int whiteOffset = 0;
-        int blackOffset = 0;
-        if (group == 0) {
-            whiteOffset = 5;
-        }
-        if (positionOfGroup == 2 || positionOfGroup == 3 || positionOfGroup == 4) {
-            blackOffset = 1;
-        }
-        drawable.setBounds((7 * group - 4 + whiteOffset + blackOffset + positionOfGroup) * whiteKeyWidth
-                        - blackKeyWidth / 2, 0,
-                (7 * group - 4 + whiteOffset + blackOffset + positionOfGroup) * whiteKeyWidth
-                        + blackKeyWidth / 2, blackKeyHeight);
+    private fun setBlackKeyDrawableBounds(group: Int, index: Int, drawable: Drawable) {
+        val whiteOffset = if (group == 0) 5 else 0
+        val blackOffset = if (index == 2 || index == 3 || index == 4) 1 else 0
+        drawable.setBounds(
+            (7 * group - 4 + whiteOffset + blackOffset + index) * whiteKeyWidth
+                    - blackKeyWidth / 2, 0, (7 * group - 4 + whiteOffset + blackOffset + index) * whiteKeyWidth
+                    + blackKeyWidth / 2, blackKeyHeight
+        )
     }
 
-    public ArrayList<PianoKey[]> getWhitePianoKeys() {
-        return whitePianoKeys;
-    }
-
-    public ArrayList<PianoKey[]> getBlackPianoKeys() {
-        return blackPianoKeys;
-    }
-
-    public int getPianoWith() {
-        return pianoWith;
+    companion object {
+        const val PIANO_NUMS = 88
     }
 }

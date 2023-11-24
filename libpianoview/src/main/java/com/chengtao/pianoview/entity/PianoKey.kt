@@ -1,105 +1,37 @@
-package com.chengtao.pianoview.entity;
+package com.chengtao.pianoview.entity
 
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
+import android.graphics.Rect
+import android.graphics.drawable.Drawable
+import com.chengtao.pianoview.entity.Piano.PianoKeyType
 
-public class PianoKey {
-    private Piano.PianoKeyType type;
-    private int group;
-    private int index;
-    private Drawable keyDrawable;
-    private int voiceId;
-    private boolean isPressed;
-    private Rect[] areaOfKey;
-    private String letterName;
-    private int fingerID = -1;
-
-    public Piano.PianoKeyType getType() {
-        return type;
-    }
-
-    public void setType(Piano.PianoKeyType type) {
-        this.type = type;
-    }
-
-    public int getGroup() {
-        return group;
-    }
-
-    public void setGroup(int group) {
-        this.group = group;
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
-    public Drawable getKeyDrawable() {
-        return keyDrawable;
-    }
-
-    public void setKeyDrawable(Drawable keyDrawable) {
-        this.keyDrawable = keyDrawable;
-    }
-
-    public int getVoiceId() {
-        return voiceId;
-    }
-
-    public void setVoiceId(int voiceId) {
-        this.voiceId = voiceId;
-    }
-
-    public boolean isPressed() {
-        return isPressed;
-    }
-
-    public void setPressed(boolean pressed) {
-        isPressed = pressed;
-    }
-
-    public Rect[] getAreaOfKey() {
-        return areaOfKey;
-    }
-
-    public void setAreaOfKey(Rect[] areaOfKey) {
-        this.areaOfKey = areaOfKey;
-    }
-
-    public String getLetterName() {
-        return letterName;
-    }
-
-    public void setLetterName(String letterName) {
-        this.letterName = letterName;
-    }
-
-    public boolean contains(int x, int y) {
-        boolean isContain = false;
-        Rect[] areas = getAreaOfKey();
-        int length = getAreaOfKey().length;
-        for (int i = 0; i < length; i++) {
-            if (areas[i] != null && areas[i].contains(x, y)) {
-                isContain = true;
-                break;
-            }
+data class PianoKey (
+    val type: PianoKeyType,
+    val group: Int,
+    val index: Int,
+    val keyDrawable: Drawable,
+    val voiceId: Int,
+) {
+    var areaOfKey: List<Rect> = listOf()
+    var isPressed: Boolean = false
+    val letterName: String
+        get() = if (type == PianoKeyType.BLACK) ""
+        else {
+            when (index) {
+                0 -> "C"
+                1 -> "D"
+                2 -> "E"
+                3 -> "F"
+                4 -> "G"
+                5 -> "A"
+                6 -> "H"
+                else -> ""
+            } + group
         }
-        return isContain;
-    }
 
-    public void resetFingerID() {
-        fingerID = -1;
-    }
+    var fingerID = -1
+    fun contains(x: Int, y: Int): Boolean  = areaOfKey.any { it.contains(x, y) }
 
-    public void setFingerID(int fingerIndex) {
-        this.fingerID = fingerIndex;
-    }
-
-    public int getFingerID() {
-        return fingerID;
+    fun resetFingerID() {
+        fingerID = -1
     }
 }

@@ -31,8 +31,8 @@ class MainActivity : AppCompatActivity() {
                 Log.d("test", "onPianoInitFinish")
             }
 
-            override fun onPianoClick(type: PianoKeyType, group: Int, positionOfGroup: Int) {
-                Log.d("test", "type:$type,group:$group,positionOfGroup:$positionOfGroup")
+            override fun onPianoClick(type: PianoKeyType, group: Int, index: Int) {
+                Log.d("test", "type:$type,group:$group,index:$index")
             }
         })
         binding.pianoView.setLoadAudioListener(object : OnLoadAudioListener {
