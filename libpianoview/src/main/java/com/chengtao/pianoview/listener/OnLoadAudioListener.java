@@ -2,12 +2,12 @@ package com.chengtao.pianoview.listener;
 
 public interface OnLoadAudioListener {
 
-  void loadPianoAudioStart();
+    void loadPianoAudioStart();
 
-  void loadPianoAudioFinish();
+    void loadPianoAudioFinish();
 
 
-  void loadPianoAudioError(Exception e);
+    void loadPianoAudioError(Exception e);
 
-  void loadPianoAudioProgress(int progress);
+    void loadPianoAudioProgress(int progress);
 }

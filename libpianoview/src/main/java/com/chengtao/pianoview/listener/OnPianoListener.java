@@ -5,8 +5,8 @@ import com.chengtao.pianoview.entity.Piano;
 
 public interface OnPianoListener {
 
-  void onPianoInitFinish();
+    void onPianoInitFinish();
 
-  void onPianoClick(Piano.PianoKeyType type, Piano.PianoVoice voice, int group,
-      int positionOfGroup);
+    void onPianoClick(Piano.PianoKeyType type, int group,
+                      int positionOfGroup);
 }

@@ -39,11 +39,11 @@
             android:src="@drawable/ic_oui_keyboard_arrow_right" />
 
         <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/music_button"
+            android:id="@+id/close_button"
             style="@style/ButtonStyle.Transparent"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_oui_audio_outline" />
+            android:src="@drawable/ic_oui_close" />
     </LinearLayout>
 
     <com.chengtao.pianoview.view.PianoView
