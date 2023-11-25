@@ -8,6 +8,8 @@ import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import de.lemke.pianoview.entity.Piano.PianoKeyType
 import de.lemke.pianoview.listener.OnLoadAudioListener
 import de.lemke.pianoview.listener.OnPianoListener
@@ -25,10 +27,20 @@ class MainActivity : AppCompatActivity() {
         }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        val dialog = ProgressDialog(this@MainActivity)
+        WindowInsetsControllerCompat(window, binding.root).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+        //undistracting dialog for fast devices
+        val dialog = ProgressDialog(this)
         dialog.setProgressStyle(ProgressDialog.STYLE_CIRCLE)
         dialog.setCancelable(false)
         dialog.show()
+        //progress dialog for slow devices, with entertaining titles
+        val progressDialog = ProgressDialog(this)
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
+        progressDialog.setCancelable(false)
+        progressDialog.max = 100
         binding.pianoView.setSoundPollMaxStream(10)
         binding.pianoSeekbar.thumbOffset = -12 * (resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
         binding.pianoView.setPianoListener(object : OnPianoListener {
@@ -45,6 +57,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun loadPianoAudioFinish() {
                 Log.d("ActivityMain", "loadPianoAudioFinish")
+                progressDialog.dismiss()
                 dialog.dismiss()
             }
 
@@ -54,6 +67,28 @@ class MainActivity : AppCompatActivity() {
 
             override fun loadPianoAudioProgress(progress: Int) {
                 Log.d("ActivityMain", "loadPianoAudioProgress: $progress")
+                progressDialog.progress = progress
+                when (progress) {
+                    in 0..3 -> {
+                        progressDialog.dismiss()
+                        dialog.show()
+                    }
+                    in 3..33 -> {
+                        progressDialog.setTitle(R.string.virtual_piano_loading_1)
+                        dialog.dismiss()
+                        progressDialog.show()
+                    }
+                    in 33..66 -> {
+                        progressDialog.setTitle(R.string.virtual_piano_loading_2)
+                        dialog.dismiss()
+                        progressDialog.show()
+                    }
+                    else -> {
+                        progressDialog.setTitle(R.string.virtual_piano_loading_3)
+                        dialog.dismiss()
+                        progressDialog.show()
+                    }
+                }
             }
         })
         binding.pianoSeekbar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
