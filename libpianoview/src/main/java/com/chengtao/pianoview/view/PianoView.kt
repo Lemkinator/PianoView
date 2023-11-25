@@ -1,5 +1,6 @@
 package com.chengtao.pianoview.view
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -71,14 +72,15 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
         setMeasuredDimension(width, height)
     }
 
+    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         if (piano == null) {
             piano = Piano(context, scale)
             if (utils == null) {
                 utils = if (maxStream > 0) {
-                    AudioUtils.getInstance(getContext(), loadAudioListener, maxStream)
+                    AudioUtils(context, loadAudioListener, maxStream)
                 } else {
-                    AudioUtils.getInstance(getContext(), loadAudioListener)
+                    AudioUtils(context, loadAudioListener)
                 }
                 try {
                     utils!!.loadMusic(piano)
@@ -123,6 +125,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val action = event.actionMasked
         if (!canPress) {
@@ -180,7 +183,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
         key.isPressed = true
         key.fingerID = event.getPointerId(which)
         pressedKeys.add(key)
-        invalidate(key.keyDrawable.bounds)
+        invalidate()
         utils!!.playMusic(key)
         pianoListener?.onPianoClick(key.type, key.group, key.index)
     }
@@ -190,7 +193,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
         key.isPressed = true
         key.fingerID = event.getPointerId(which)
         pressedKeys.add(key)
-        invalidate(key.keyDrawable.bounds)
+        invalidate()
         utils!!.playMusic(key)
         pianoListener?.onPianoClick(key.type, key.group, key.index)
     }
@@ -202,7 +205,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
             if (key.fingerID == event.getPointerId(which)) {
                 if (!key.contains(x, y)) {
                     key.keyDrawable.state = intArrayOf(-android.R.attr.state_pressed)
-                    invalidate(key.keyDrawable.bounds)
+                    invalidate()
                     key.isPressed = false
                     key.resetFingerID()
                     pressedKeys.remove(key)
@@ -217,7 +220,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
                 key.isPressed = false
                 key.resetFingerID()
                 key.keyDrawable.state = intArrayOf(-android.R.attr.state_pressed)
-                invalidate(key.keyDrawable.bounds)
+                invalidate()
                 pressedKeys.remove(key)
                 break
             }
@@ -229,7 +232,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
             for (key in pressedKeys) {
                 key.keyDrawable.state = intArrayOf(-android.R.attr.state_pressed)
                 key.isPressed = false
-                invalidate(key.keyDrawable.bounds)
+                invalidate()
             }
             pressedKeys.clear()
         }
@@ -244,12 +247,14 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
     val pianoWidth: Int
         get() = piano?.pianoWith ?: 0
 
+    @Suppress("unused")
     fun setPianoColors(pianoColors: IntArray) {
         if (pianoColors.size == 9) {
             this.pianoColors = pianoColors
         }
     }
 
+    @Suppress("unused")
     fun setCanPress(canPress: Boolean) {
         this.canPress = canPress
     }

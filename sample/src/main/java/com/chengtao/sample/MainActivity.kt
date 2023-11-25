@@ -24,32 +24,32 @@ class MainActivity : AppCompatActivity() {
             controller.hide(WindowInsetsCompat.Type.systemBars())
             controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
+
         binding.pianoView.setSoundPollMaxStream(10)
         binding.pianoSeekbar.thumbOffset = -12 * (resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
         binding.pianoView.setPianoListener(object : OnPianoListener {
             override fun onPianoInitFinish() {
-                Log.d("test", "onPianoInitFinish")
+                Log.d("MainActivity", "onPianoInitFinish")
             }
 
-            override fun onPianoClick(type: PianoKeyType, group: Int, index: Int) {
-                Log.d("test", "type:$type,group:$group,index:$index")
-            }
+            override fun onPianoClick(type: PianoKeyType, group: Int, index: Int) {}
         })
         binding.pianoView.setLoadAudioListener(object : OnLoadAudioListener {
             override fun loadPianoAudioStart() {
-                Log.d("test", "loadPianoMusicStart")
+                Log.d("ActivityMain", "loadPianoAudioStart")
             }
 
             override fun loadPianoAudioFinish() {
-                Log.d("test", "loadPianoMusicFinish")
+                Log.d("ActivityMain", "loadPianoAudioFinish")
+
             }
 
             override fun loadPianoAudioError(e: Exception) {
-                Log.d("test", "loadPianoMusicError")
+                Log.e("ActivityMain", "loadPianoAudioError: $e")
             }
 
             override fun loadPianoAudioProgress(progress: Int) {
-                Log.d("test", "loadPianoMusicProgress:$progress")
+                Log.d("ActivityMain", "loadPianoAudioProgress: $progress")
             }
         })
         binding.pianoSeekbar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {

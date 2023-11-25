@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <application
         android:allowBackup="false"
@@ -24,9 +25,12 @@
             android:name="com.samsung.android.icon_container.feature_appicon"
             android:value="ADAPTIVEICON_SHADOW" />
 
-        <activity android:name=".MainActivity"
-            android:screenOrientation="sensorLandscape"
-            android:exported="true">
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:screenOrientation="sensorLandscape">
             <meta-data
                 android:name="com.sec.android.app.launcher.icon_theme"
                 android:value="themeColor" />

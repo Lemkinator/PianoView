@@ -10,8 +10,8 @@ data class PianoKey (
     val index: Int,
     val keyDrawable: Drawable,
     val voiceId: Int,
+    val areaOfKey: List<Rect>,
 ) {
-    var areaOfKey: List<Rect> = listOf()
     var isPressed: Boolean = false
     val letterName: String
         get() = if (type == PianoKeyType.BLACK) ""
@@ -23,15 +23,15 @@ data class PianoKey (
                 3 -> "F"
                 4 -> "G"
                 5 -> "A"
-                6 -> "H"
+                6 -> "B"
                 else -> ""
             } + group
         }
 
     var fingerID = -1
-    fun contains(x: Int, y: Int): Boolean  = areaOfKey.any { it.contains(x, y) }
-
     fun resetFingerID() {
         fingerID = -1
     }
+
+    fun contains(x: Int, y: Int): Boolean  = areaOfKey.any { it.contains(x, y) }
 }

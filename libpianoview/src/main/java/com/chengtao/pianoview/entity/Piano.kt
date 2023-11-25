@@ -1,5 +1,6 @@
 package com.chengtao.pianoview.entity
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
@@ -28,30 +29,30 @@ class Piano(private val context: Context, private val scale: Float) {
         if (scale > 0) {
             val blackDrawable = ContextCompat.getDrawable(context, R.drawable.black_piano_key)
             val whiteDrawable = ContextCompat.getDrawable(context, R.drawable.white_piano_key)
-            val yInches = context.resources.displayMetrics.heightPixels / context.resources.displayMetrics.ydpi
             val xInches = context.resources.displayMetrics.widthPixels / context.resources.displayMetrics.xdpi
-            val diagonalInches = sqrt((xInches * xInches + yInches * yInches).toDouble())
+            //val yInches = context.resources.displayMetrics.heightPixels / context.resources.displayMetrics.ydpi
+            //val diagonalInches = sqrt((xInches * xInches + yInches * yInches).toDouble())
             blackKeyWidth = blackDrawable!!.intrinsicWidth
-            blackKeyWidth = (blackDrawable.intrinsicWidth * xInches / 4.7).toInt()
+            blackKeyWidth = (blackDrawable.intrinsicWidth * sqrt(xInches) / 2.15).toInt()
             blackKeyHeight = (blackDrawable.intrinsicHeight * scale).toInt()
             whiteKeyWidth = whiteDrawable!!.intrinsicWidth
-            whiteKeyWidth = (whiteDrawable.intrinsicWidth * xInches / 4.7).toInt()
+            whiteKeyWidth = (whiteDrawable.intrinsicWidth * sqrt(xInches) / 2.15).toInt()
             whiteKeyHeight = (whiteDrawable.intrinsicHeight * scale).toInt()
             for (group in 0 until 8) {
                 val keys: List<PianoKey> = List(if (group == 0) 1 else 5) { index ->
-                    val key = PianoKey(
+                    val drawable = ScaleDrawable(
+                        ContextCompat.getDrawable(context, R.drawable.black_piano_key),
+                        Gravity.NO_GRAVITY, scale, scale
+                    ).drawable!!
+                    setBlackKeyDrawableBounds(group, index, drawable)
+                    PianoKey(
                         PianoKeyType.BLACK,
                         group,
                         index,
-                        ScaleDrawable(
-                            ContextCompat.getDrawable(context, R.drawable.black_piano_key),
-                            Gravity.NO_GRAVITY, scale, scale
-                        ).drawable!!,
-                        getVoiceFromResources("b$group$index")
+                        drawable,
+                        getVoiceFromResources(PianoKeyType.BLACK, group, index),
+                        listOf(drawable.bounds)
                     )
-                    setBlackKeyDrawableBounds(group, index, key.keyDrawable)
-                    key.areaOfKey = listOf(key.keyDrawable.bounds)
-                    key
                 }
                 blackPianoKeys.add(keys)
             }
@@ -64,35 +65,35 @@ class Piano(private val context: Context, private val scale: Float) {
                     }
                 ) { index ->
                     pianoWith += whiteKeyWidth
-                    val key = PianoKey(
+                    val drawable = ScaleDrawable(
+                        ContextCompat.getDrawable(context, R.drawable.white_piano_key),
+                        Gravity.NO_GRAVITY, scale, scale
+                    ).drawable!!
+                    setWhiteKeyDrawableBounds(group, index, drawable)
+                    PianoKey(
                         PianoKeyType.WHITE,
                         group,
                         index,
-                        ScaleDrawable(
-                            ContextCompat.getDrawable(context, R.drawable.white_piano_key),
-                            Gravity.NO_GRAVITY, scale, scale
-                        ).drawable!!,
-                        getVoiceFromResources("w$group$index")
-                    )
-                    setWhiteKeyDrawableBounds(group, index, key.keyDrawable)
-                    when (group) {
-                        0 -> when (index) {
-                            0 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.RIGHT)
-                            1 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT)
-                        }
+                        drawable,
+                        getVoiceFromResources(PianoKeyType.WHITE, group, index),
+                        when (group) {
+                            0 -> when (index) {
+                                0 -> getWhitePianoKeyArea(group, index, BlackKeyPosition.RIGHT)
+                                else -> getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT) // 1
+                            }
 
-                        8 -> key.areaOfKey = listOf(key.keyDrawable.bounds)
-                        else -> when (index) {
-                            0 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.RIGHT)
-                            1 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT_RIGHT)
-                            2 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT)
-                            3 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.RIGHT)
-                            4 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT_RIGHT)
-                            5 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT_RIGHT)
-                            6 -> key.areaOfKey = getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT)
+                            8 -> listOf(drawable.bounds)
+                            else -> when (index) {
+                                0 -> getWhitePianoKeyArea(group, index, BlackKeyPosition.RIGHT)
+                                1 -> getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT_RIGHT)
+                                2 -> getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT)
+                                3 -> getWhitePianoKeyArea(group, index, BlackKeyPosition.RIGHT)
+                                4 -> getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT_RIGHT)
+                                5 -> getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT_RIGHT)
+                                else -> getWhitePianoKeyArea(group, index, BlackKeyPosition.LEFT) // 6
+                            }
                         }
-                    }
-                    key
+                    )
                 }
                 whitePianoKeys.add(keys)
             }
@@ -107,14 +108,14 @@ class Piano(private val context: Context, private val scale: Float) {
         LEFT, LEFT_RIGHT, RIGHT
     }
 
-    private fun getVoiceFromResources(voiceName: String): Int {
-        return context.resources.getIdentifier(voiceName, "raw", context.packageName)
-    }
+    @SuppressLint("DiscouragedApi")
+    private fun getVoiceFromResources(keyType: PianoKeyType, group: Int, index: Int): Int = context.resources.getIdentifier(
+        if (keyType == PianoKeyType.BLACK) { "b" } else { "w" } + group + index,
+        "raw",
+        context.packageName
+    )
 
-    private fun getWhitePianoKeyArea(
-        group: Int, positionOfGroup: Int,
-        blackKeyPosition: BlackKeyPosition
-    ): List<Rect> {
+    private fun getWhitePianoKeyArea(group: Int, positionOfGroup: Int, blackKeyPosition: BlackKeyPosition): List<Rect> {
         val offset = if (group == 0) 5 else 0
         return when (blackKeyPosition) {
             BlackKeyPosition.LEFT -> {
@@ -183,9 +184,5 @@ class Piano(private val context: Context, private val scale: Float) {
                     - blackKeyWidth / 2, 0, (7 * group - 4 + whiteOffset + blackOffset + index) * whiteKeyWidth
                     + blackKeyWidth / 2, blackKeyHeight
         )
-    }
-
-    companion object {
-        const val PIANO_NUMS = 88
     }
 }
