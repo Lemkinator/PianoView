@@ -1,4 +1,4 @@
-package com.chengtao.pianoview.utils
+package de.lemke.pianoview.utils
 
 import android.content.Context
 import android.media.AudioAttributes
@@ -8,11 +8,11 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import android.util.SparseIntArray
-import com.chengtao.pianoview.entity.Piano
-import com.chengtao.pianoview.entity.Piano.PianoKeyType
-import com.chengtao.pianoview.entity.PianoKey
-import com.chengtao.pianoview.listener.LoadAudioMessage
-import com.chengtao.pianoview.listener.OnLoadAudioListener
+import de.lemke.pianoview.entity.Piano
+import de.lemke.pianoview.entity.Piano.PianoKeyType
+import de.lemke.pianoview.entity.PianoKey
+import de.lemke.pianoview.listener.LoadAudioMessage
+import de.lemke.pianoview.listener.OnLoadAudioListener
 import java.util.concurrent.Executors
 
 class AudioUtils constructor(context: Context, loadAudioListener: OnLoadAudioListener?, maxStream: Int = 11) : LoadAudioMessage {

@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.chengtao.pianoview"
+    namespace = "de.lemke.pianoview"
     compileSdk = 34
 
     defaultConfig {
@@ -45,6 +45,5 @@ android {
 }
 
 dependencies {
-    implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.code.gson:gson:2.10.1")
 }

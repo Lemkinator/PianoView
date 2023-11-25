@@ -1,8 +1,8 @@
-package com.chengtao.pianoview.entity
+package de.lemke.pianoview.entity
 
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
-import com.chengtao.pianoview.entity.Piano.PianoKeyType
+import de.lemke.pianoview.entity.Piano.PianoKeyType
 
 data class PianoKey (
     val type: PianoKeyType,

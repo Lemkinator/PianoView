@@ -1,9 +1,8 @@
-package com.chengtao.pianoview.view
+package de.lemke.pianoview.view
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.os.Parcelable
@@ -11,13 +10,12 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import androidx.core.content.ContextCompat
-import com.chengtao.pianoview.R
-import com.chengtao.pianoview.entity.Piano
-import com.chengtao.pianoview.entity.PianoKey
-import com.chengtao.pianoview.listener.OnLoadAudioListener
-import com.chengtao.pianoview.listener.OnPianoListener
-import com.chengtao.pianoview.utils.AudioUtils
+import de.lemke.pianoview.R
+import de.lemke.pianoview.entity.Piano
+import de.lemke.pianoview.entity.PianoKey
+import de.lemke.pianoview.listener.OnLoadAudioListener
+import de.lemke.pianoview.listener.OnPianoListener
+import de.lemke.pianoview.utils.AudioUtils
 import java.util.concurrent.CopyOnWriteArrayList
 
 class PianoView @JvmOverloads constructor(private val context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : View(
@@ -28,15 +26,15 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
     private val paint: Paint = Paint()
     private val square: RectF
     private var pianoColors = intArrayOf(
-        getContext().getColor(R.color.piano_key_description_0),
-        getContext().getColor(R.color.piano_key_description_1),
-        getContext().getColor(R.color.piano_key_description_2),
-        getContext().getColor(R.color.piano_key_description_3),
-        getContext().getColor(R.color.piano_key_description_4),
-        getContext().getColor(R.color.piano_key_description_5),
-        getContext().getColor(R.color.piano_key_description_6),
-        getContext().getColor(R.color.piano_key_description_7),
-        getContext().getColor(R.color.piano_key_description_8)
+        context.getColor(R.color.piano_key_description_0),
+        context.getColor(R.color.piano_key_description_1),
+        context.getColor(R.color.piano_key_description_2),
+        context.getColor(R.color.piano_key_description_3),
+        context.getColor(R.color.piano_key_description_4),
+        context.getColor(R.color.piano_key_description_5),
+        context.getColor(R.color.piano_key_description_6),
+        context.getColor(R.color.piano_key_description_7),
+        context.getColor(R.color.piano_key_description_8)
     )
     private var utils: AudioUtils? = null
     var layoutWidth = 0
@@ -56,8 +54,8 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        Log.e(TAG, "onMeasure")
-        val whiteKeyDrawable = ContextCompat.getDrawable(context, R.drawable.white_piano_key)
+        Log.d("PianoView", "onMeasure")
+        val whiteKeyDrawable = context.getDrawable(R.drawable.white_piano_key)
         val whiteKeyHeight = whiteKeyDrawable!!.intrinsicHeight
         val width = MeasureSpec.getSize(widthMeasureSpec)
         val heightMode = MeasureSpec.getMode(heightMeasureSpec)
@@ -102,9 +100,9 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
                     val right = r.right - sideLength / 2
                     val bottom = r.bottom - sideLength / 3
                     square[left.toFloat(), top.toFloat(), right.toFloat()] = bottom.toFloat()
-                    canvas.drawRoundRect(square, 25f, 25f, paint)
-                    paint.color = Color.BLACK
-                    paint.textSize = sideLength / 1.8f
+                    //canvas.drawRoundRect(square, 25f, 25f, paint)
+                    //paint.color = Color.BLACK
+                    paint.textSize = sideLength / 1.6f
                     val fontMetrics = paint.fontMetricsInt
                     val baseline = ((square.bottom + square.top - fontMetrics.bottom - fontMetrics.top) / 2).toInt()
                     paint.textAlign = Paint.Align.CENTER
@@ -284,9 +282,5 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
     override fun onRestoreInstanceState(state: Parcelable) {
         super.onRestoreInstanceState(state)
         postDelayed({ scroll(progress) }, 200)
-    }
-
-    companion object {
-        private const val TAG = "PianoView"
     }
 }

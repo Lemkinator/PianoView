@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.chengtao.sample"
+    namespace = "de.lemke.pianoviewsample"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.chengtao.sample"
+        applicationId = "de.lemke.pianoviewsample"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -55,8 +55,29 @@ android {
     }
 }
 
+
+configurations.configureEach {
+    exclude("androidx.appcompat", "appcompat")
+    exclude("androidx.fragment", "fragment")
+    exclude("androidx.core", "core")
+    exclude("androidx.drawerlayout", "drawerlayout")
+    exclude("androidx.viewpager", "viewpager")
+    exclude("androidx.viewpager2", "viewpager2")
+    exclude("androidx.coordinatorlayout", "coordinatorlayout")
+    exclude("androidx.recyclerview", "recyclerview")
+}
+
 dependencies {
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("io.github.oneuiproject:design:1.2.6")
+    implementation("io.github.oneuiproject.sesl:appcompat:1.4.0")
+    implementation("io.github.oneuiproject.sesl:material:1.5.0")
     implementation("io.github.oneuiproject:icons:1.1.0")
+
+    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("androidx.core:core-animation:1.0.0-rc01")
+    //noinspection GradleDependency
+    implementation("androidx.core:core-ktx:1.9.0")
+    //noinspection GradleDependency
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
     implementation(project(":libpianoview"))
 }

@@ -46,9 +46,9 @@
             android:src="@drawable/ic_oui_close" />
     </LinearLayout>
 
-    <com.chengtao.pianoview.view.PianoView
+    <de.lemke.pianoview.view.PianoView
         android:id="@+id/piano_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    </com.chengtao.pianoview.view.PianoView>
+    </de.lemke.pianoview.view.PianoView>
 </LinearLayout>

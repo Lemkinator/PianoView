@@ -1,6 +1,6 @@
-package com.chengtao.pianoview.listener
+package de.lemke.pianoview.listener
 
-import com.chengtao.pianoview.entity.Piano.PianoKeyType
+import de.lemke.pianoview.entity.Piano.PianoKeyType
 
 interface OnPianoListener {
     fun onPianoInitFinish()

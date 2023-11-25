@@ -1,4 +1,4 @@
-package com.chengtao.pianoview.entity
+package de.lemke.pianoview.entity
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -6,8 +6,7 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.ScaleDrawable
 import android.view.Gravity
-import androidx.core.content.ContextCompat
-import com.chengtao.pianoview.R
+import de.lemke.pianoview.R
 import kotlin.math.sqrt
 
 
@@ -27,8 +26,8 @@ class Piano(private val context: Context, private val scale: Float) {
 
     private fun initPiano() {
         if (scale > 0) {
-            val blackDrawable = ContextCompat.getDrawable(context, R.drawable.black_piano_key)
-            val whiteDrawable = ContextCompat.getDrawable(context, R.drawable.white_piano_key)
+            val blackDrawable = context.getDrawable(R.drawable.black_piano_key)
+            val whiteDrawable = context.getDrawable(R.drawable.white_piano_key)
             val xInches = context.resources.displayMetrics.widthPixels / context.resources.displayMetrics.xdpi
             //val yInches = context.resources.displayMetrics.heightPixels / context.resources.displayMetrics.ydpi
             //val diagonalInches = sqrt((xInches * xInches + yInches * yInches).toDouble())
@@ -41,7 +40,7 @@ class Piano(private val context: Context, private val scale: Float) {
             for (group in 0 until 8) {
                 val keys: List<PianoKey> = List(if (group == 0) 1 else 5) { index ->
                     val drawable = ScaleDrawable(
-                        ContextCompat.getDrawable(context, R.drawable.black_piano_key),
+                        context.getDrawable(R.drawable.black_piano_key),
                         Gravity.NO_GRAVITY, scale, scale
                     ).drawable!!
                     setBlackKeyDrawableBounds(group, index, drawable)
@@ -66,7 +65,7 @@ class Piano(private val context: Context, private val scale: Float) {
                 ) { index ->
                     pianoWith += whiteKeyWidth
                     val drawable = ScaleDrawable(
-                        ContextCompat.getDrawable(context, R.drawable.white_piano_key),
+                        context.getDrawable(R.drawable.white_piano_key),
                         Gravity.NO_GRAVITY, scale, scale
                     ).drawable!!
                     setWhiteKeyDrawableBounds(group, index, drawable)
@@ -155,13 +154,13 @@ class Piano(private val context: Context, private val scale: Float) {
             BlackKeyPosition.RIGHT -> {
                 listOf(
                     Rect(
-                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth, blackKeyHeight,
-                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth + blackKeyWidth / 2,
+                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth, 0,
+                        (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth - blackKeyWidth / 2,
                         whiteKeyHeight
                     ),
                     Rect(
-                        (7 * group - 5 + offset + positionOfGroup) * whiteKeyWidth + blackKeyWidth / 2,
-                        0, (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth, whiteKeyHeight
+                        (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth - blackKeyWidth / 2,
+                        blackKeyHeight, (7 * group - 4 + offset + positionOfGroup) * whiteKeyWidth, whiteKeyHeight
                     )
                 )
             }

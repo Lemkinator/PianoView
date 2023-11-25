@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="piano_key_description_0">#CE93D8</color>
-    <color name="piano_key_description_1">#B39DDB</color>
-    <color name="piano_key_description_2">#9FA8DA</color>
-    <color name="piano_key_description_3">#90CAF9</color>
-    <color name="piano_key_description_4">#81D4FA</color>
-    <color name="piano_key_description_5">#80DEEA</color>
-    <color name="piano_key_description_6">#80CBC4</color>
-    <color name="piano_key_description_7">#A5D6A7</color>
-    <color name="piano_key_description_8">#C5E1A5</color>
+    <color name="piano_key_description_0">#EF5350</color>
+    <color name="piano_key_description_1">#AB47BC</color>
+    <color name="piano_key_description_2">#7E57C2</color>
+    <color name="piano_key_description_3">#5C6BC0</color>
+    <color name="piano_key_description_4">#29B6F6</color>
+    <color name="piano_key_description_5">#26A69A</color>
+    <color name="piano_key_description_6">#66BB6A</color>
+    <color name="piano_key_description_7">#9CCC65</color>
+    <color name="piano_key_description_8">#D4E157</color>
 </resources>

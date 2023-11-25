@@ -1,8 +1,18 @@
 <resources>
 
-    <style name="Theme.PianoView" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.PianoView" parent="OneUITheme">
         <item name="colorPrimary">@color/primary_color</item>
         <item name="colorPrimaryDark">@color/primary_color</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <style name="Theme.NAKBuch.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/oui_round_and_bgcolor</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="windowSplashScreenAnimationDuration">700</item>
+        <!--item name="windowSplashScreenIconBackgroundColor">@color/oui_background_color</item-->
+        <item name="postSplashScreenTheme">@style/Theme.PianoView</item>
     </style>
 
     <style name="ButtonStyle.Transparent" parent="Widget.AppCompat.Button">

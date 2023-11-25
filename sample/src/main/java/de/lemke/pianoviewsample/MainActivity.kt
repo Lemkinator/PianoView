@@ -1,47 +1,51 @@
-package com.chengtao.sample
+package de.lemke.pianoviewsample
 
+import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
-import com.chengtao.pianoview.entity.Piano.PianoKeyType
-import com.chengtao.pianoview.listener.OnLoadAudioListener
-import com.chengtao.pianoview.listener.OnPianoListener
-import com.chengtao.sample.databinding.ActivityMainBinding
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import de.lemke.pianoview.entity.Piano.PianoKeyType
+import de.lemke.pianoview.listener.OnLoadAudioListener
+import de.lemke.pianoview.listener.OnPianoListener
+import de.lemke.pianoviewsample.databinding.ActivityMainBinding
+import dev.oneuiproject.oneui.dialog.ProgressDialog
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var scrollProgress = 0
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= 34) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, android.R.anim.fade_in, android.R.anim.fade_out)
+        }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        WindowInsetsControllerCompat(window, binding.root).let { controller ->
-            controller.hide(WindowInsetsCompat.Type.systemBars())
-            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
-
+        val dialog = ProgressDialog(this@MainActivity)
+        dialog.setProgressStyle(ProgressDialog.STYLE_CIRCLE)
+        dialog.setCancelable(false)
+        dialog.show()
         binding.pianoView.setSoundPollMaxStream(10)
         binding.pianoSeekbar.thumbOffset = -12 * (resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
         binding.pianoView.setPianoListener(object : OnPianoListener {
+            override fun onPianoClick(type: PianoKeyType, group: Int, index: Int) {}
             override fun onPianoInitFinish() {
                 Log.d("MainActivity", "onPianoInitFinish")
             }
-
-            override fun onPianoClick(type: PianoKeyType, group: Int, index: Int) {}
         })
         binding.pianoView.setLoadAudioListener(object : OnLoadAudioListener {
             override fun loadPianoAudioStart() {
                 Log.d("ActivityMain", "loadPianoAudioStart")
+                dialog.show()
             }
 
             override fun loadPianoAudioFinish() {
                 Log.d("ActivityMain", "loadPianoAudioFinish")
-
+                dialog.dismiss()
             }
 
             override fun loadPianoAudioError(e: Exception) {
@@ -70,7 +74,7 @@ class MainActivity : AppCompatActivity() {
             else (binding.pianoSeekbar.progress + scrollProgress).coerceAtMost(100)
         }
         binding.closeButton.setOnClickListener {
-            finishAfterTransition()
+            onBackPressedDispatcher.onBackPressed()
         }
     }
 
