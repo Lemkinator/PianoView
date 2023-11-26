@@ -59,7 +59,8 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
 
     var visibleKeys = 12
         set(value) {
-            field = value.coerceIn(6, 30)
+            field = if (value == -1) 12
+            else value.coerceIn(6, 30)
             if (field + firstVisibleWhiteKeyIndex > 52) {
                 firstVisibleWhiteKeyIndex = 52 - field
             }
@@ -85,7 +86,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
 
     private fun setSeekBarThumbWidth() {
         seekBar?.let {
-            val thumbOffset = 19 * (resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
+            val thumbOffset = 21 * (resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
             val bitmap =
                 Bitmap.createBitmap(it.measuredWidth / 52 * visibleKeys, it.measuredHeight, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
@@ -100,6 +101,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
     /**
      * Note: Setting this, will destroy the current [AudioUtils] instance and create a new one, so audio will be reloaded.
      */
+    @Suppress("unused")
     var audioMaxStreams: Int?
         get() = audioUtils.maxStreams
         set(value) {
@@ -263,12 +265,12 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
     }
 
     fun scrollLeft() {
-        firstVisibleWhiteKeyIndex -= visibleKeys
+        firstVisibleWhiteKeyIndex -= 7
         smoothScrollToWhiteKey(firstVisibleWhiteKeyIndex)
     }
 
     fun scrollRight() {
-        firstVisibleWhiteKeyIndex += visibleKeys
+        firstVisibleWhiteKeyIndex += 7
         smoothScrollToWhiteKey(firstVisibleWhiteKeyIndex)
     }
 

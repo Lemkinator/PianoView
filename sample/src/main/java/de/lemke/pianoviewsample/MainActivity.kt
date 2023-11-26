@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity() {
         progressDialog.max = 100
         progressDialog.setTitle(R.string.virtual_piano_loading_1)
         progressDialog.show()
+        binding.pianoView.visibleKeys = 12
         binding.pianoView.audioMaxStreams = 10
         binding.pianoView.pianoListener = object : OnPianoListener {
             override fun onPianoClick(type: PianoKeyType, group: Int, indexInGroup: Int) {
@@ -71,7 +72,6 @@ class MainActivity : AppCompatActivity() {
         binding.rightArrowButton.setOnClickListener { binding.pianoView.goToNextWhiteKey() }
         binding.scrollRightArrowButton.setOnClickListener { binding.pianoView.scrollRight() }
         binding.plusButton.setOnClickListener { binding.pianoView.visibleKeys++ }
-
         binding.closeButton.setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
         }
