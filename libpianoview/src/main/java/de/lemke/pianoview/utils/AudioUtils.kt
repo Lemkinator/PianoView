@@ -64,8 +64,10 @@ class AudioUtils(
                 playKey(it)
                 delay(700)
             }
-            delay(500)
-            pianoKeys.forEach { playKey(it) }
+            if (pianoKeys.size > 1) {
+                delay(500)
+                pianoKeys.forEach { playKey(it) }
+            }
         }
     }
 
