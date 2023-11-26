@@ -6,35 +6,30 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.ScaleDrawable
 import de.lemke.pianoview.R
 import de.lemke.pianoview.utils.predefinedSortedPianoKeys
-import kotlin.math.sqrt
 
 
 class Piano {
-    private var blackKeyWidth = 0
-    private var blackKeyHeight = 0
-    private var whiteKeyWidth = 0
-    private var whiteKeyHeight = 0
-    var pianoWith = 0
+    private var blackKeyWidth = 1
+    private var blackKeyHeight = 1
+    var whiteKeyWidth = 1
+    private var whiteKeyHeight = 1
+    val pianoWith
+        get() = whiteKeyWidth * 52
     var uiInitialized = false
     val pianoKeys: MutableList<PianoKey> = predefinedSortedPianoKeys
 
-    fun setDrawableAndBounds(context: Context, scale: Float) {
+    fun setDrawableAndBounds(context: Context, scale: Float, layoutWith: Int, visibleKeys: Int) {
         if (scale > 0) {
             uiInitialized = true
             val blackDrawable = context.getDrawable(R.drawable.black_piano_key)
             val whiteDrawable = context.getDrawable(R.drawable.white_piano_key)
-            val xInches = context.resources.displayMetrics.widthPixels / context.resources.displayMetrics.xdpi
-            //val yInches = context.resources.displayMetrics.heightPixels / context.resources.displayMetrics.ydpi
-            //val diagonalInches = sqrt((xInches * xInches + yInches * yInches).toDouble())
-            blackKeyWidth = blackDrawable!!.intrinsicWidth
-            blackKeyWidth = (blackDrawable.intrinsicWidth * sqrt(xInches) / 2.15).toInt()
+            val widthScale: Float = (layoutWith.toFloat() / visibleKeys.toFloat()) / whiteDrawable!!.intrinsicWidth.toFloat()
+            blackKeyWidth = (blackDrawable!!.intrinsicWidth * widthScale).toInt()
             blackKeyHeight = (blackDrawable.intrinsicHeight * scale).toInt()
-            whiteKeyWidth = whiteDrawable!!.intrinsicWidth
-            whiteKeyWidth = (whiteDrawable.intrinsicWidth * sqrt(xInches) / 2.15).toInt()
+            whiteKeyWidth = layoutWith / visibleKeys
             whiteKeyHeight = (whiteDrawable.intrinsicHeight * scale).toInt()
             pianoKeys.forEach {
                 if (it.type == PianoKeyType.WHITE) {
-                    pianoWith += whiteKeyWidth
                     val drawable = ScaleDrawable(
                         context.getDrawable(R.drawable.white_piano_key),
                         0, scale, scale

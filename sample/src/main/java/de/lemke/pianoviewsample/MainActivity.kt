@@ -2,10 +2,7 @@ package de.lemke.pianoviewsample
 
 import android.os.Build
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.util.Log
-import android.widget.SeekBar
-import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowInsetsCompat
@@ -18,7 +15,6 @@ import dev.oneuiproject.oneui.dialog.ProgressDialog
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private var scrollProgress = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -37,14 +33,10 @@ class MainActivity : AppCompatActivity() {
         progressDialog.max = 100
         progressDialog.setTitle(R.string.virtual_piano_loading_1)
         progressDialog.show()
-        binding.pianoSeekbar.thumbOffset = -12 * (resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
         binding.pianoView.audioMaxStreams = 10
         binding.pianoView.pianoListener = object : OnPianoListener {
             override fun onPianoClick(type: PianoKeyType, group: Int, indexInGroup: Int) {
                 //Log.d("MainActivity", "onPianoClick: $type, $group, $indexInGroup")
-            }
-            override fun onPianoInitFinish() {
-                Log.d("MainActivity", "onPianoInitFinish")
             }
         }
         binding.pianoView.loadAudioListener = object : OnLoadAudioListener {
@@ -72,23 +64,14 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        binding.pianoSeekbar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
-            override fun onStartTrackingTouch(p0: SeekBar?) {}
-            override fun onStopTrackingTouch(p0: SeekBar?) {}
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                binding.pianoView.scroll(progress)
-            }
-        })
-        binding.leftArrowButton.setOnClickListener {
-            scrollProgress = binding.pianoView.layoutWidth * 75 / binding.pianoView.pianoWidth
-            binding.pianoSeekbar.progress = if (scrollProgress == 0) 0
-            else (binding.pianoSeekbar.progress - scrollProgress).coerceAtLeast(0)
-        }
-        binding.rightArrowButton.setOnClickListener {
-            scrollProgress = binding.pianoView.layoutWidth * 75 / binding.pianoView.pianoWidth
-            binding.pianoSeekbar.progress = if (scrollProgress == 0) 100
-            else (binding.pianoSeekbar.progress + scrollProgress).coerceAtMost(100)
-        }
+        binding.pianoView.seekBar = binding.pianoSeekbar
+        binding.minusButton.setOnClickListener { binding.pianoView.visibleKeys-- }
+        binding.scrollLeftArrowButton.setOnClickListener { binding.pianoView.scrollLeft() }
+        binding.leftArrowButton.setOnClickListener { binding.pianoView.goToPreviousWhiteKey() }
+        binding.rightArrowButton.setOnClickListener { binding.pianoView.goToNextWhiteKey() }
+        binding.scrollRightArrowButton.setOnClickListener { binding.pianoView.scrollRight() }
+        binding.plusButton.setOnClickListener { binding.pianoView.visibleKeys++ }
+
         binding.closeButton.setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
         }

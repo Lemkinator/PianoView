@@ -1,15 +1,20 @@
 package de.lemke.pianoview.view
 
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.drawable.BitmapDrawable
 import android.os.Parcelable
 import android.util.AttributeSet
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.widget.SeekBar
 import de.lemke.pianoview.R
 import de.lemke.pianoview.entity.Piano
 import de.lemke.pianoview.entity.PianoKey
@@ -19,6 +24,7 @@ import de.lemke.pianoview.listener.OnPianoListener
 import de.lemke.pianoview.utils.AudioUtils
 import java.util.concurrent.CopyOnWriteArrayList
 
+
 class PianoView @JvmOverloads constructor(private val context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : View(
     context, attrs, defStyleAttr
 ) {
@@ -27,6 +33,8 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
     private val pressedKeys: CopyOnWriteArrayList<PianoKey> = CopyOnWriteArrayList()
     private val paint: Paint = Paint()
     private val square: RectF = RectF()
+    private var layoutWidth = 0
+    private var scale = 0f
     private var pianoColors = intArrayOf(
         context.getColor(R.color.piano_key_description_0),
         context.getColor(R.color.piano_key_description_1),
@@ -38,15 +46,56 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
         context.getColor(R.color.piano_key_description_7),
         context.getColor(R.color.piano_key_description_8)
     )
-    var layoutWidth = 0
-        private set
-    private var scale = 0f
-    private var scrollProgress = 0
     var loadAudioListener: OnLoadAudioListener?
         get() = audioUtils.loadAudioListener
         set(value) {
             audioUtils.loadAudioListener = value
         }
+
+    private var firstVisibleWhiteKeyIndex = 20  //G3, index from 0 to 51
+        set(value) {
+            field = value.coerceIn(0, 52 - visibleKeys)
+        }
+
+    var visibleKeys = 12
+        set(value) {
+            field = value.coerceIn(6, 30)
+            if (field + firstVisibleWhiteKeyIndex > 52) {
+                firstVisibleWhiteKeyIndex = 52 - field
+            }
+            invalidate()
+            piano.setDrawableAndBounds(context, scale, layoutWidth, field)
+            setSeekBarThumbWidth()
+            scrollToWhiteKey(firstVisibleWhiteKeyIndex)
+        }
+
+    var seekBar: SeekBar? = null
+        set(value) {
+            field = value
+            field?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onStartTrackingTouch(seekBar: SeekBar) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar) {}
+                override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                    if (fromUser) seekbarScroll(progress)
+                }
+            })
+            field?.background = context.getDrawable(R.drawable.piano_bar)
+            field?.progressDrawable = null
+        }
+
+    private fun setSeekBarThumbWidth() {
+        seekBar?.let {
+            val thumbOffset = 19 * (resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
+            val bitmap =
+                Bitmap.createBitmap(it.measuredWidth / 52 * visibleKeys, it.measuredHeight, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            val drawable = context.getDrawable(R.drawable.seekbar_thumb)
+            drawable!!.setBounds(0, 0, bitmap.width, bitmap.height)
+            drawable.draw(canvas)
+            it.thumb = BitmapDrawable(resources, bitmap)
+            it.thumbOffset = thumbOffset
+        }
+    }
 
     /**
      * Note: Setting this, will destroy the current [AudioUtils] instance and create a new one, so audio will be reloaded.
@@ -87,9 +136,9 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
 
     override fun onDraw(canvas: Canvas) {
         if (!piano.uiInitialized) {
-            piano.setDrawableAndBounds(context, scale)
-            scroll(50)
-            pianoListener?.onPianoInitFinish()
+            piano.setDrawableAndBounds(context, scale, layoutWidth, visibleKeys)
+            setSeekBarThumbWidth()
+            scrollToWhiteKey(firstVisibleWhiteKeyIndex)
         }
         piano.pianoKeys.forEach {
             it.keyDrawable!!.draw(canvas)
@@ -196,28 +245,60 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
         audioUtils.destroy()
     }
 
-    val pianoWidth: Int
-        get() = piano.pianoWith
-
     @Suppress("unused")
-    fun setPianoColors(pianoColors: IntArray) {
+    fun setPianoColors(vararg pianoColors: Int) {
         if (pianoColors.size == 9) {
             this.pianoColors = pianoColors
         }
     }
 
-    fun scroll(progress: Int) {
+    fun goToNextWhiteKey() {
+        firstVisibleWhiteKeyIndex++
+        smoothScrollToWhiteKey(firstVisibleWhiteKeyIndex)
+    }
+
+    fun goToPreviousWhiteKey() {
+        firstVisibleWhiteKeyIndex--
+        smoothScrollToWhiteKey(firstVisibleWhiteKeyIndex)
+    }
+
+    fun scrollLeft() {
+        firstVisibleWhiteKeyIndex -= visibleKeys
+        smoothScrollToWhiteKey(firstVisibleWhiteKeyIndex)
+    }
+
+    fun scrollRight() {
+        firstVisibleWhiteKeyIndex += visibleKeys
+        smoothScrollToWhiteKey(firstVisibleWhiteKeyIndex)
+    }
+
+    fun seekbarScroll(progress: Int) {
         val x: Int = when (progress) {
             0 -> 0
-            100 -> pianoWidth - layoutWidth
-            else -> (progress.toFloat() / 100f * (pianoWidth - layoutWidth).toFloat()).toInt()
+            100 -> piano.pianoWith - layoutWidth
+            else -> (progress.toFloat() / 100f * (piano.pianoWith - layoutWidth).toFloat()).toInt()
         }
         scrollTo(x, 0)
-        this.scrollProgress = progress
+        firstVisibleWhiteKeyIndex = (x.toFloat() / piano.whiteKeyWidth.toFloat()).toInt()
+    }
+
+    private fun scrollToWhiteKey(index: Int) {
+        val x = index * piano.whiteKeyWidth
+        scrollTo(x, 0)
+        seekBar?.progress = (x.toFloat() / (piano.pianoWith - layoutWidth).toFloat() * 100f).toInt()
+    }
+
+    private fun smoothScrollToWhiteKey(index: Int) {
+        val x = index * piano.whiteKeyWidth
+        ObjectAnimator.ofInt(this, "scrollX", scrollX, x).setDuration(200).start()
+        seekBar?.let {
+            val newProgress = (x.toFloat() / (piano.pianoWith - layoutWidth).toFloat() * 100f).toInt()
+            ObjectAnimator.ofInt(it, "progress", it.progress, newProgress).setDuration(200).start()
+        }
     }
 
     override fun onRestoreInstanceState(state: Parcelable) {
         super.onRestoreInstanceState(state)
-        postDelayed({ scroll(scrollProgress) }, 200)
+        postDelayed({ scrollToWhiteKey(firstVisibleWhiteKeyIndex) }, 200)
     }
 }
