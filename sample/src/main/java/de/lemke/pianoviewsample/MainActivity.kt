@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import de.lemke.pianoview.entity.Piano.PianoKeyType
+import de.lemke.pianoview.entity.PianoKeyType
 import de.lemke.pianoview.listener.OnLoadAudioListener
 import de.lemke.pianoview.listener.OnPianoListener
 import de.lemke.pianoviewsample.databinding.ActivityMainBinding
@@ -31,34 +31,31 @@ class MainActivity : AppCompatActivity() {
             controller.hide(WindowInsetsCompat.Type.systemBars())
             controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
-        //undistracting dialog for fast devices
-        val dialog = ProgressDialog(this)
-        dialog.setProgressStyle(ProgressDialog.STYLE_CIRCLE)
-        dialog.setCancelable(false)
-        dialog.show()
-        //progress dialog for slow devices, with entertaining titles
         val progressDialog = ProgressDialog(this)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
         progressDialog.setCancelable(false)
         progressDialog.max = 100
-        binding.pianoView.setSoundPollMaxStream(10)
+        progressDialog.setTitle(R.string.virtual_piano_loading_1)
+        progressDialog.show()
         binding.pianoSeekbar.thumbOffset = -12 * (resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
-        binding.pianoView.setPianoListener(object : OnPianoListener {
-            override fun onPianoClick(type: PianoKeyType, group: Int, index: Int) {}
+        binding.pianoView.audioMaxStreams = 10
+        binding.pianoView.pianoListener = object : OnPianoListener {
+            override fun onPianoClick(type: PianoKeyType, group: Int, indexInGroup: Int) {
+                //Log.d("MainActivity", "onPianoClick: $type, $group, $indexInGroup")
+            }
             override fun onPianoInitFinish() {
                 Log.d("MainActivity", "onPianoInitFinish")
             }
-        })
-        binding.pianoView.setLoadAudioListener(object : OnLoadAudioListener {
+        }
+        binding.pianoView.loadAudioListener = object : OnLoadAudioListener {
             override fun loadPianoAudioStart() {
                 Log.d("ActivityMain", "loadPianoAudioStart")
-                dialog.show()
+                progressDialog.show()
             }
 
             override fun loadPianoAudioFinish() {
                 Log.d("ActivityMain", "loadPianoAudioFinish")
                 progressDialog.dismiss()
-                dialog.dismiss()
             }
 
             override fun loadPianoAudioError(e: Exception) {
@@ -69,28 +66,12 @@ class MainActivity : AppCompatActivity() {
                 Log.d("ActivityMain", "loadPianoAudioProgress: $progress")
                 progressDialog.progress = progress
                 when (progress) {
-                    in 0..3 -> {
-                        progressDialog.dismiss()
-                        dialog.show()
-                    }
-                    in 3..33 -> {
-                        progressDialog.setTitle(R.string.virtual_piano_loading_1)
-                        dialog.dismiss()
-                        progressDialog.show()
-                    }
-                    in 33..66 -> {
-                        progressDialog.setTitle(R.string.virtual_piano_loading_2)
-                        dialog.dismiss()
-                        progressDialog.show()
-                    }
-                    else -> {
-                        progressDialog.setTitle(R.string.virtual_piano_loading_3)
-                        dialog.dismiss()
-                        progressDialog.show()
-                    }
+                    in 0..33 -> progressDialog.setTitle(R.string.virtual_piano_loading_1)
+                    in 33..66 -> progressDialog.setTitle(R.string.virtual_piano_loading_2)
+                    else -> progressDialog.setTitle(R.string.virtual_piano_loading_3)
                 }
             }
-        })
+        }
         binding.pianoSeekbar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onStartTrackingTouch(p0: SeekBar?) {}
             override fun onStopTrackingTouch(p0: SeekBar?) {}

@@ -7,123 +7,75 @@ import android.media.SoundPool
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.util.SparseIntArray
-import de.lemke.pianoview.entity.Piano
-import de.lemke.pianoview.entity.Piano.PianoKeyType
+import android.util.Log
 import de.lemke.pianoview.entity.PianoKey
 import de.lemke.pianoview.listener.LoadAudioMessage
 import de.lemke.pianoview.listener.OnLoadAudioListener
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 
-class AudioUtils constructor(context: Context, loadAudioListener: OnLoadAudioListener?, maxStream: Int = 11) : LoadAudioMessage {
+class AudioUtils(
+    private val context: Context,
+    private val pianoKeys: MutableList<PianoKey>,
+    var loadAudioListener: OnLoadAudioListener? = null,
+    var maxStreams: Int? = null
+) : LoadAudioMessage {
     private val service = Executors.newCachedThreadPool()
-    private var pool: SoundPool
+    private val audioManager: AudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    private val handler: Handler = AudioStatusHandler(context.mainLooper)
+    private var pool: SoundPool = SoundPool.Builder().setMaxStreams(maxStreams ?: 10)
+        .setAudioAttributes(
+            AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .build()
+        ).build()
 
-    private var context: Context?
-    private val loadAudioListener: OnLoadAudioListener?
-    private var whiteKeyMusics: SparseIntArray = SparseIntArray()
-    private var blackKeyMusics: SparseIntArray = SparseIntArray()
-    private var isLoadFinish = false
-    private var isLoading = false
-    private val handler: Handler
-    private val audioManager: AudioManager
-    private var currentTime: Long = 0
-    private var loadNum = 0
-    private var minSoundId = -1
-    private var maxSoundId = -1
+    @Suppress("MemberVisibilityCanBePrivate")
+    val initialized
+        get() = loadedKeys == pianoKeys.size
+    private var loadedKeys = 0
 
     init {
-        this.context = context
-        this.loadAudioListener = loadAudioListener
-        handler = AudioStatusHandler(context.mainLooper)
-        pool = SoundPool.Builder().setMaxStreams(maxStream)
-            .setAudioAttributes(
-                AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .build()
-            )
-            .build()
-        audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-    }
-
-    fun loadMusic(piano: Piano?) {
-        if (piano != null) {
-            if (!isLoading && !isLoadFinish) {
-                isLoading = true
-                pool.setOnLoadCompleteListener { _: SoundPool?, _: Int, _: Int ->
-                    loadNum++
-                    if (loadNum == 88) {
-                        isLoadFinish = true
-                        sendProgressMessage(100)
-                        sendFinishMessage()
-                        pool.play(whiteKeyMusics[0], 0f, 0f, 1, -1, 2f)
-                    } else {
-                        if (System.currentTimeMillis() - currentTime >= SEND_PROGRESS_MESSAGE_BREAK_TIME) {
-                            sendProgressMessage((loadNum.toFloat() / 88 * 100f).toInt())
-                            currentTime = System.currentTimeMillis()
-                        }
-                    }
-                }
-                service.execute {
-                    sendStartMessage()
-                    val whiteKeys = piano.whitePianoKeys
-                    var whiteKeyPos = 0
-                    for (i in whiteKeys.indices) {
-                        for (key in whiteKeys[i]) {
-                            try {
-                                val soundID = pool.load(context, key.voiceId, 1)
-                                whiteKeyMusics.put(whiteKeyPos, soundID)
-                                if (minSoundId == -1) {
-                                    minSoundId = soundID
-                                }
-                                whiteKeyPos++
-                            } catch (e: Exception) {
-                                isLoading = false
-                                sendErrorMessage(e)
-                                return@execute
-                            }
-                        }
-                    }
-                    val blackKeys = piano.blackPianoKeys
-                    var blackKeyPos = 0
-                    for (i in blackKeys.indices) {
-                        for (key in blackKeys[i]) {
-                            try {
-                                val soundID = pool.load(context, key.voiceId, 1)
-                                blackKeyMusics.put(blackKeyPos, soundID)
-                                blackKeyPos++
-                                if (soundID > maxSoundId) {
-                                    maxSoundId = soundID
-                                }
-                            } catch (e: Exception) {
-                                isLoading = false
-                                sendErrorMessage(e)
-                                return@execute
-                            }
-                        }
-                    }
-                }
+        pool.setOnLoadCompleteListener { _: SoundPool?, _: Int, _: Int ->
+            loadedKeys++
+            sendProgressMessage(loadedKeys * 100 / pianoKeys.size)
+            if (initialized) {
+                sendFinishMessage()
+                pool.play(pianoKeys.first().soundPoolId!!, 0f, 0f, 1, -1, 2f)
+            }
+        }
+        service.execute {
+            sendStartMessage()
+            pianoKeys.forEach {
+                it.soundPoolId = pool.load(context, it.soundResId, 1)
             }
         }
     }
 
-    fun playMusic(key: PianoKey) {
-        if (isLoadFinish) {
-            service.execute {
-                when (key.type) {
-                    PianoKeyType.BLACK -> playBlackKeyMusic(key.group, key.index)
-                    PianoKeyType.WHITE -> playWhiteKeyMusic(key.group, key.index)
-                }
+    @Suppress("unused")
+    suspend fun playAllAsStartingPitch() {
+        withContext(Dispatchers.Default) {
+            while (!initialized) {
+                delay(500)
             }
+            pianoKeys.forEach {
+                playKey(it)
+                delay(700)
+            }
+            delay(500)
+            pianoKeys.forEach { playKey(it) }
         }
     }
 
-    private fun playWhiteKeyMusic(group: Int, index: Int) {
-        play(whiteKeyMusics[if (group == 0) index else (group - 1) * 7 + 2 + index])
-    }
+    fun playKey(index: Int) = playKey(pianoKeys[index])
 
-    private fun playBlackKeyMusic(group: Int, index: Int) {
-        play(blackKeyMusics[if (group == 0) index else (group - 1) * 5 + 1 + index])
+    private fun playKey(key: PianoKey) = service.execute {
+        if (initialized) {
+            if (key.soundPoolId == null) Log.e("AudioUtils", "playKey: soundPoolId is null for key $key")
+            else key.soundPoolId?.let { play(it) }
+        }
     }
 
     private fun play(soundId: Int) {
@@ -136,11 +88,8 @@ class AudioUtils constructor(context: Context, loadAudioListener: OnLoadAudioLis
         pool.play(soundId, volume, volume, 1, 0, 1f)
     }
 
-    fun stop() {
-        context = null
+    fun destroy() {
         pool.release()
-        whiteKeyMusics.clear()
-        blackKeyMusics.clear()
     }
 
     override fun sendStartMessage() {
@@ -167,14 +116,12 @@ class AudioUtils constructor(context: Context, loadAudioListener: OnLoadAudioLis
     }
 
     private fun handleAudioStatusMessage(msg: Message) {
-        if (loadAudioListener != null) {
-            when (msg.what) {
-                LOAD_START -> loadAudioListener.loadPianoAudioStart()
-                LOAD_FINISH -> loadAudioListener.loadPianoAudioFinish()
-                LOAD_ERROR -> loadAudioListener.loadPianoAudioError(msg.obj as Exception)
-                LOAD_PROGRESS -> loadAudioListener.loadPianoAudioProgress(msg.obj as Int)
-                else -> {}
-            }
+        when (msg.what) {
+            LOAD_START -> loadAudioListener?.loadPianoAudioStart()
+            LOAD_FINISH -> loadAudioListener?.loadPianoAudioFinish()
+            LOAD_ERROR -> loadAudioListener?.loadPianoAudioError(msg.obj as Exception)
+            LOAD_PROGRESS -> loadAudioListener?.loadPianoAudioProgress(msg.obj as Int)
+            else -> {}
         }
     }
 
@@ -183,6 +130,5 @@ class AudioUtils constructor(context: Context, loadAudioListener: OnLoadAudioLis
         private const val LOAD_FINISH = 2
         private const val LOAD_ERROR = 3
         private const val LOAD_PROGRESS = 4
-        private const val SEND_PROGRESS_MESSAGE_BREAK_TIME = 500
     }
 }

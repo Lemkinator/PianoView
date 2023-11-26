@@ -41,5 +41,9 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+}
 
+dependencies {
+    //noinspection GradleDependency
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
 }

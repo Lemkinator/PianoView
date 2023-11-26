@@ -13,6 +13,7 @@ import android.view.View
 import de.lemke.pianoview.R
 import de.lemke.pianoview.entity.Piano
 import de.lemke.pianoview.entity.PianoKey
+import de.lemke.pianoview.entity.PianoKeyType
 import de.lemke.pianoview.listener.OnLoadAudioListener
 import de.lemke.pianoview.listener.OnPianoListener
 import de.lemke.pianoview.utils.AudioUtils
@@ -21,10 +22,11 @@ import java.util.concurrent.CopyOnWriteArrayList
 class PianoView @JvmOverloads constructor(private val context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : View(
     context, attrs, defStyleAttr
 ) {
-    private var piano: Piano? = null
+    private var piano: Piano = Piano()
+    private var audioUtils: AudioUtils = AudioUtils(context, piano.pianoKeys)
     private val pressedKeys: CopyOnWriteArrayList<PianoKey> = CopyOnWriteArrayList()
     private val paint: Paint = Paint()
-    private val square: RectF
+    private val square: RectF = RectF()
     private var pianoColors = intArrayOf(
         context.getColor(R.color.piano_key_description_0),
         context.getColor(R.color.piano_key_description_1),
@@ -36,21 +38,34 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
         context.getColor(R.color.piano_key_description_7),
         context.getColor(R.color.piano_key_description_8)
     )
-    private var utils: AudioUtils? = null
     var layoutWidth = 0
         private set
-    private var scale = 1f
-    private var loadAudioListener: OnLoadAudioListener? = null
-    private var pianoListener: OnPianoListener? = null
-    private var progress = 0
-    private var canPress = true
-    private var isInitFinish = false
-    private var maxStream = 0
+    private var scale = 0f
+    private var scrollProgress = 0
+    var loadAudioListener: OnLoadAudioListener?
+        get() = audioUtils.loadAudioListener
+        set(value) {
+            audioUtils.loadAudioListener = value
+        }
+
+    /**
+     * Note: Setting this, will destroy the current [AudioUtils] instance and create a new one, so audio will be reloaded.
+     */
+    var audioMaxStreams: Int?
+        get() = audioUtils.maxStreams
+        set(value) {
+            audioUtils.destroy()
+            audioUtils = AudioUtils(context, piano.pianoKeys, loadAudioListener, value)
+        }
+
+    var pianoListener: OnPianoListener? = null
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    var canPress = true
 
     init {
         paint.isAntiAlias = true
         paint.style = Paint.Style.FILL
-        square = RectF()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -70,79 +85,45 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
         setMeasuredDimension(width, height)
     }
 
-    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
-        if (piano == null) {
-            piano = Piano(context, scale)
-            if (utils == null) {
-                utils = if (maxStream > 0) {
-                    AudioUtils(context, loadAudioListener, maxStream)
-                } else {
-                    AudioUtils(context, loadAudioListener)
-                }
-                try {
-                    utils!!.loadMusic(piano)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
+        if (!piano.uiInitialized) {
+            piano.setDrawableAndBounds(context, scale)
             scroll(50)
+            pianoListener?.onPianoInitFinish()
         }
-        if (piano?.whitePianoKeys != null) {
-            for (i in piano?.whitePianoKeys!!.indices) {
-                for (key in piano?.whitePianoKeys!![i]) {
-                    paint.color = pianoColors[i]
-                    key.keyDrawable.draw(canvas)
-                    val r = key.keyDrawable.bounds
-                    val sideLength = (r.right - r.left) / 2
-                    val left = r.left + sideLength / 2
-                    val top = r.bottom - sideLength - sideLength / 3
-                    val right = r.right - sideLength / 2
-                    val bottom = r.bottom - sideLength / 3
-                    square[left.toFloat(), top.toFloat(), right.toFloat()] = bottom.toFloat()
-                    //canvas.drawRoundRect(square, 25f, 25f, paint)
-                    //paint.color = Color.BLACK
-                    paint.textSize = sideLength / 1.6f
-                    val fontMetrics = paint.fontMetricsInt
-                    val baseline = ((square.bottom + square.top - fontMetrics.bottom - fontMetrics.top) / 2).toInt()
-                    paint.textAlign = Paint.Align.CENTER
-                    canvas.drawText(key.letterName, square.centerX(), baseline.toFloat(), paint)
-                }
+        piano.pianoKeys.forEach {
+            it.keyDrawable!!.draw(canvas)
+            if (it.type == PianoKeyType.WHITE) {
+                paint.color = pianoColors[it.group]
+                val r = it.keyDrawable!!.bounds
+                val sideLength = (r.right - r.left) / 2
+                val left = r.left + sideLength / 2
+                val top = r.bottom - sideLength - sideLength / 3
+                val right = r.right - sideLength / 2
+                val bottom = r.bottom - sideLength / 3
+                square[left.toFloat(), top.toFloat(), right.toFloat()] = bottom.toFloat()
+                //canvas.drawRoundRect(square, 25f, 25f, paint)
+                //paint.color = Color.BLACK
+                paint.textSize = sideLength / 1.6f
+                val fontMetrics = paint.fontMetricsInt
+                val baseline = ((square.bottom + square.top - fontMetrics.bottom - fontMetrics.top) / 2).toInt()
+                paint.textAlign = Paint.Align.CENTER
+                canvas.drawText(it.noteName.toString(), square.centerX(), baseline.toFloat(), paint)
             }
-        }
-        if (piano?.blackPianoKeys != null) {
-            for (i in piano?.blackPianoKeys!!.indices) {
-                for (key in piano?.blackPianoKeys!![i]) {
-                    key.keyDrawable.draw(canvas)
-                }
-            }
-        }
-        if (!isInitFinish && piano != null && pianoListener != null) {
-            isInitFinish = true
-            pianoListener!!.onPianoInitFinish()
         }
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        val action = event.actionMasked
         if (!canPress) {
             return false
         }
-        when (action) {
+        when (event.actionMasked) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> handleDown(event.actionIndex, event)
             MotionEvent.ACTION_MOVE -> {
-                run {
-                    var i = 0
-                    while (i < event.pointerCount) {
-                        handleMove(i, event)
-                        i++
-                    }
-                }
-                var i = 0
-                while (i < event.pointerCount) {
+                for (i in 0 until event.pointerCount) {
+                    handleMove(i, event)
                     handleDown(i, event)
-                    i++
                 }
             }
 
@@ -160,40 +141,17 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
     private fun handleDown(which: Int, event: MotionEvent) {
         val x = event.getX(which).toInt() + this.scrollX
         val y = event.getY(which).toInt()
-        for (i in piano?.whitePianoKeys!!.indices) {
-            for (key in piano?.whitePianoKeys!![i]) {
-                if (!key.isPressed && key.contains(x, y)) {
-                    handleWhiteKeyDown(which, event, key)
-                }
+        piano.pianoKeys.forEachIndexed { index, key ->
+            if (!key.isPressed && key.contains(x, y)) {
+                key.keyDrawable!!.state = intArrayOf(android.R.attr.state_pressed)
+                key.isPressed = true
+                key.fingerID = event.getPointerId(which)
+                pressedKeys.add(key)
+                invalidate()
+                audioUtils.playKey(index)
+                pianoListener?.onPianoClick(key.type, key.group, key.indexInGroup)
             }
         }
-        for (i in piano?.blackPianoKeys!!.indices) {
-            for (key in piano?.blackPianoKeys!![i]) {
-                if (!key.isPressed && key.contains(x, y)) {
-                    handleBlackKeyDown(which, event, key)
-                }
-            }
-        }
-    }
-
-    private fun handleWhiteKeyDown(which: Int, event: MotionEvent, key: PianoKey) {
-        key.keyDrawable.state = intArrayOf(android.R.attr.state_pressed)
-        key.isPressed = true
-        key.fingerID = event.getPointerId(which)
-        pressedKeys.add(key)
-        invalidate()
-        utils!!.playMusic(key)
-        pianoListener?.onPianoClick(key.type, key.group, key.index)
-    }
-
-    private fun handleBlackKeyDown(which: Int, event: MotionEvent, key: PianoKey) {
-        key.keyDrawable.state = intArrayOf(android.R.attr.state_pressed)
-        key.isPressed = true
-        key.fingerID = event.getPointerId(which)
-        pressedKeys.add(key)
-        invalidate()
-        utils!!.playMusic(key)
-        pianoListener?.onPianoClick(key.type, key.group, key.index)
     }
 
     private fun handleMove(which: Int, event: MotionEvent) {
@@ -202,7 +160,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
         for (key in pressedKeys) {
             if (key.fingerID == event.getPointerId(which)) {
                 if (!key.contains(x, y)) {
-                    key.keyDrawable.state = intArrayOf(-android.R.attr.state_pressed)
+                    key.keyDrawable!!.state = intArrayOf(-android.R.attr.state_pressed)
                     invalidate()
                     key.isPressed = false
                     key.resetFingerID()
@@ -217,7 +175,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
             if (key.fingerID == pointerId) {
                 key.isPressed = false
                 key.resetFingerID()
-                key.keyDrawable.state = intArrayOf(-android.R.attr.state_pressed)
+                key.keyDrawable!!.state = intArrayOf(-android.R.attr.state_pressed)
                 invalidate()
                 pressedKeys.remove(key)
                 break
@@ -226,35 +184,26 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
     }
 
     private fun handleUp() {
-        if (pressedKeys.size > 0) {
-            for (key in pressedKeys) {
-                key.keyDrawable.state = intArrayOf(-android.R.attr.state_pressed)
-                key.isPressed = false
-                invalidate()
-            }
-            pressedKeys.clear()
+        for (key in pressedKeys) {
+            key.keyDrawable!!.state = intArrayOf(-android.R.attr.state_pressed)
+            key.isPressed = false
+            invalidate()
         }
+        pressedKeys.clear()
     }
 
     fun destroy() {
-        if (utils != null) {
-            utils!!.stop()
-        }
+        audioUtils.destroy()
     }
 
     val pianoWidth: Int
-        get() = piano?.pianoWith ?: 0
+        get() = piano.pianoWith
 
     @Suppress("unused")
     fun setPianoColors(pianoColors: IntArray) {
         if (pianoColors.size == 9) {
             this.pianoColors = pianoColors
         }
-    }
-
-    @Suppress("unused")
-    fun setCanPress(canPress: Boolean) {
-        this.canPress = canPress
     }
 
     fun scroll(progress: Int) {
@@ -264,23 +213,11 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
             else -> (progress.toFloat() / 100f * (pianoWidth - layoutWidth).toFloat()).toInt()
         }
         scrollTo(x, 0)
-        this.progress = progress
-    }
-
-    fun setSoundPollMaxStream(maxStream: Int) {
-        this.maxStream = maxStream
-    }
-
-    fun setPianoListener(pianoListener: OnPianoListener) {
-        this.pianoListener = pianoListener
-    }
-
-    fun setLoadAudioListener(loadAudioListener: OnLoadAudioListener) {
-        this.loadAudioListener = loadAudioListener
+        this.scrollProgress = progress
     }
 
     override fun onRestoreInstanceState(state: Parcelable) {
         super.onRestoreInstanceState(state)
-        postDelayed({ scroll(progress) }, 200)
+        postDelayed({ scroll(scrollProgress) }, 200)
     }
 }
