@@ -22,7 +22,9 @@ class PianoKey private constructor(
             .replace("b", "es")
             .replace("x", "isis")
             .replace("bb", "eses")
-            .replace("Hes", "B")
+            .replace(Regex("Hes$"), "B")
+            .replace("Ee", "E")
+            .replace("Ae", "A")
 
     val soundResId
         get() = getSoundResId()
