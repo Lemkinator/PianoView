@@ -94,7 +94,7 @@ class AudioUtils(
     }
 
     @Suppress("unused")
-    private fun setVolume(volume: Float) {
+    fun setVolume(volume: Float) {
         pianoKeys.forEach { it.soundPoolId?.let { id -> pool.setVolume(id, volume.coerceIn(0f, 1f), volume.coerceIn(0f, 1f)) } }
     }
 
