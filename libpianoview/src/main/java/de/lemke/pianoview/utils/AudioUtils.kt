@@ -18,12 +18,13 @@ import java.util.concurrent.Executors
 
 class AudioUtils(
     private val context: Context,
-    private val pianoKeys: MutableList<PianoKey>,
+    private val pianoKeys: List<PianoKey>,
     var loadAudioListener: OnLoadAudioListener? = null,
     var maxStreams: Int? = null
 ) : LoadAudioMessage {
     private val service = Executors.newCachedThreadPool()
-    private val audioManager: AudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    private val audioManager: AudioManager =
+        context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val handler: Handler = AudioStatusHandler(context.mainLooper)
     private var pool: SoundPool = SoundPool.Builder().setMaxStreams(maxStreams ?: 10)
         .setAudioAttributes(
@@ -55,39 +56,40 @@ class AudioUtils(
     }
 
     @Suppress("unused")
-    suspend fun playAllAsStartingPitch() {
+    suspend fun playAllAsStartingPitch(volume: Float? = null) {
         withContext(Dispatchers.Default) {
             while (!initialized) {
                 delay(500)
             }
             pianoKeys.forEach {
-                playKey(it)
+                playKey(it, volume)
                 delay(700)
             }
             if (pianoKeys.size > 1) {
                 delay(500)
-                pianoKeys.forEach { playKey(it) }
+                pianoKeys.forEach { playKey(it, volume) }
             }
         }
     }
 
-    fun playKey(index: Int) = playKey(pianoKeys[index])
+    fun playKey(index: Int, volume: Float? = null) = playKey(pianoKeys[index], volume)
 
-    private fun playKey(key: PianoKey) = service.execute {
+    private fun playKey(key: PianoKey, volume: Float? = null) = service.execute {
         if (initialized) {
             if (key.soundPoolId == null) Log.e("AudioUtils", "playKey: soundPoolId is null for key $key")
-            else key.soundPoolId?.let { play(it) }
+            else key.soundPoolId?.let { play(it, volume) }
         }
     }
 
-    private fun play(soundId: Int) {
-        val actualVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat()
-        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).toFloat()
-        var volume = actualVolume / maxVolume
-        if (volume <= 0) {
-            volume = 1f
+    private fun play(soundId: Int, volume: Float? = null) {
+        val v = if (volume != null) volume.coerceIn(0f, 1f)
+        else {
+            val actualVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat()
+            val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).toFloat()
+            if ((actualVolume / maxVolume) <= 0f) 1f
+            else (actualVolume / maxVolume).coerceIn(0f, 1f)
         }
-        pool.play(soundId, volume, volume, 1, 0, 1f)
+        pool.play(soundId, v, v, 1, 0, 1f)
     }
 
     fun destroy() {
