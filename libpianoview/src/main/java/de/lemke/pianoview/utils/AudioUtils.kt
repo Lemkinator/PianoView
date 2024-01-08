@@ -2,7 +2,6 @@ package de.lemke.pianoview.utils
 
 import android.content.Context
 import android.media.AudioAttributes
-import android.media.AudioManager
 import android.media.SoundPool
 import android.os.Handler
 import android.os.Looper
@@ -23,15 +22,13 @@ class AudioUtils(
     var maxStreams: Int? = null
 ) : LoadAudioMessage {
     private val service = Executors.newCachedThreadPool()
-    private val audioManager: AudioManager =
-        context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val handler: Handler = AudioStatusHandler(context.mainLooper)
-    private var pool: SoundPool = SoundPool.Builder().setMaxStreams(maxStreams ?: 10)
-        .setAudioAttributes(
-            AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .build()
-        ).build()
+    private var pool: SoundPool = SoundPool.Builder().setMaxStreams(maxStreams ?: 10).setAudioAttributes(
+        AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+            .setUsage(AudioAttributes.USAGE_MEDIA)
+            .build()
+    ).build()
+    private var volume: Float = 1f
 
     @Suppress("MemberVisibilityCanBePrivate")
     val initialized
@@ -42,10 +39,7 @@ class AudioUtils(
         pool.setOnLoadCompleteListener { _: SoundPool?, _: Int, _: Int ->
             loadedKeys++
             sendProgressMessage(loadedKeys * 100 / pianoKeys.size)
-            if (initialized) {
-                sendFinishMessage()
-                pool.play(pianoKeys.first().soundPoolId!!, 0f, 0f, 1, -1, 2f)
-            }
+            if (initialized) sendFinishMessage()
         }
         service.execute {
             sendStartMessage()
@@ -61,41 +55,35 @@ class AudioUtils(
             while (!initialized) {
                 delay(500)
             }
+            volume?.let { setVolume(it) }
             pianoKeys.forEach {
-                playKey(it, volume)
+                playKey(it)
                 delay(700)
             }
             if (pianoKeys.size > 1) {
                 delay(500)
-                pianoKeys.forEach { playKey(it, volume) }
+                pianoKeys.forEach { playKey(it) }
             }
         }
     }
 
-    fun playKey(index: Int, volume: Float? = null) = playKey(pianoKeys[index], volume)
+    fun playKey(index: Int) = playKey(pianoKeys[index])
 
-    private fun playKey(key: PianoKey, volume: Float? = null) = service.execute {
+    private fun playKey(key: PianoKey) = service.execute {
         if (initialized) {
             if (key.soundPoolId == null) Log.e("AudioUtils", "playKey: soundPoolId is null for key $key")
-            else key.soundPoolId?.let { play(it, volume) }
+            else key.soundPoolId?.let { play(it) }
         }
     }
 
-    private fun play(soundId: Int, volume: Float? = null) {
-        val v = if (volume != null) volume.coerceIn(0f, 1f)
-        else {
-            val actualVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat()
-            val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).toFloat()
-            if ((actualVolume / maxVolume) <= 0f) 1f
-            else (actualVolume / maxVolume).coerceIn(0f, 1f)
-        }
-        pool.setVolume(soundId, v, v)
-        pool.play(soundId, v, v, 1, 0, 1f)
+    private fun play(soundId: Int) {
+        pool.play(soundId, volume, volume, 1, 0, 1f)
     }
 
-    @Suppress("unused")
+    @Suppress("unused", "MemberVisibilityCanBePrivate")
     fun setVolume(volume: Float) {
-        pianoKeys.forEach { it.soundPoolId?.let { id -> pool.setVolume(id, volume.coerceIn(0f, 1f), volume.coerceIn(0f, 1f)) } }
+        this.volume = volume.coerceIn(0f, 1f) * volume.coerceIn(0f, 1f)
+        pianoKeys.forEach { it.soundPoolId?.let { id -> pool.setVolume(id, this.volume, this.volume) } }
     }
 
     fun destroy() {
