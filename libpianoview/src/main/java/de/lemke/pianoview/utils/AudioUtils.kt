@@ -89,7 +89,13 @@ class AudioUtils(
             if ((actualVolume / maxVolume) <= 0f) 1f
             else (actualVolume / maxVolume).coerceIn(0f, 1f)
         }
+        pool.setVolume(soundId, v, v)
         pool.play(soundId, v, v, 1, 0, 1f)
+    }
+
+    @Suppress("unused")
+    private fun setVolume(volume: Float) {
+        pianoKeys.forEach { it.soundPoolId?.let { id -> pool.setVolume(id, volume.coerceIn(0f, 1f), volume.coerceIn(0f, 1f)) } }
     }
 
     fun destroy() {
