@@ -15,16 +15,7 @@ class PianoKey private constructor(
         get() = givenNoteName ?: NoteName.firstWith(type, group, indexInGroup)
 
     @Suppress("unused")
-    val germanNoteName: String
-        get() = noteName.toString()
-            .replace("B", "H")
-            .replace("#", "is")
-            .replace("b", "es")
-            .replace("x", "isis")
-            .replace("bb", "eses")
-            .replace(Regex("Hes$"), "B")
-            .replace("Ee", "E")
-            .replace("Ae", "A")
+    val germanNoteName: String get() = noteName.germanNoteName
 
     val soundResId
         get() = getSoundResId()
@@ -73,6 +64,7 @@ class PianoKey private constructor(
             return create(NoteName.create(noteName))
 
         }
+
         fun create(noteName: NoteName?): PianoKey? {
             if (noteName == null) return null
             var group = noteName.octave
@@ -187,6 +179,43 @@ data class NoteName(
     val accidental: String,
 ) {
     override fun toString(): String = "$natural$accidental$octave"
+
+    val germanNoteName: String
+        get() {
+            when (natural) {
+                "B" -> {
+                    return when (accidental) {
+                        "b" -> "B$octave"
+                        "bb" -> "Heses$octave"
+                        "#" -> "His$octave"
+                        "x" -> "Hisis$octave"
+                        else -> "H$octave"
+                    }
+                }
+
+                "E" -> {
+                    when (accidental) {
+                        "b" -> return "Es$octave"
+                        "bb" -> return "Eses$octave"
+                    }
+                }
+
+                "A" -> {
+                    when (accidental) {
+                        "b" -> return "As$octave"
+                        "bb" -> return "Ases$octave"
+                    }
+                }
+            }
+            val germanAccidental = when (accidental) {
+                "b" -> "es"
+                "bb" -> "eses"
+                "#" -> "is"
+                "x" -> "isis"
+                else -> ""
+            }
+            return "$natural$germanAccidental$octave"
+        }
 
     companion object {
         fun create(noteName: String): NoteName? {
