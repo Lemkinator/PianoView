@@ -74,7 +74,6 @@ dependencies {
     implementation("io.github.oneuiproject:icons:1.1.0")
 
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.core:core-animation:1.0.0-rc01")
     //noinspection GradleDependency
     implementation("androidx.core:core-ktx:1.9.0")
     //noinspection GradleDependency
