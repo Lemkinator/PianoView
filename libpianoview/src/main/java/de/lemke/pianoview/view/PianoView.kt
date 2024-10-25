@@ -88,7 +88,11 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
         seekBar?.let {
             val thumbOffset = 21 * (resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
             val bitmap =
-                Bitmap.createBitmap(it.measuredWidth / 52 * visibleKeys, it.measuredHeight, Bitmap.Config.ARGB_8888)
+                Bitmap.createBitmap(
+                    (it.measuredWidth / 52 * visibleKeys).coerceAtLeast(1),
+                    it.measuredHeight.coerceAtLeast(1),
+                    Bitmap.Config.ARGB_8888
+                )
             val canvas = Canvas(bitmap)
             val drawable = context.getDrawable(R.drawable.seekbar_thumb)
             drawable!!.setBounds(0, 0, bitmap.width, bitmap.height)
