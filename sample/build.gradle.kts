@@ -5,15 +5,14 @@ plugins {
 
 android {
     namespace = "de.lemke.pianoviewsample"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "de.lemke.pianoviewsample"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -21,10 +20,7 @@ android {
             isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
 
             ndk {
                 debugSymbolLevel = "FULL"
@@ -34,10 +30,7 @@ android {
             isDebuggable = true
             isMinifyEnabled = false
             isShrinkResources = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
@@ -53,30 +46,44 @@ android {
     buildFeatures {
         viewBinding = true
     }
-}
 
-
-configurations.configureEach {
-    exclude("androidx.appcompat", "appcompat")
-    exclude("androidx.fragment", "fragment")
-    exclude("androidx.core", "core")
-    exclude("androidx.drawerlayout", "drawerlayout")
-    exclude("androidx.viewpager", "viewpager")
-    exclude("androidx.viewpager2", "viewpager2")
-    exclude("androidx.coordinatorlayout", "coordinatorlayout")
-    exclude("androidx.recyclerview", "recyclerview")
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
 }
 
 dependencies {
-    implementation("io.github.oneuiproject:design:1.2.6")
-    implementation("io.github.oneuiproject.sesl:appcompat:1.4.0")
-    implementation("io.github.oneuiproject.sesl:material:1.5.0")
+    //SESL6(OneUI 6) Android Jetpack
+    implementation("sesl.androidx.core:core:1.15.0-rc01+1.0.11-sesl6+rev0")
+    implementation("sesl.androidx.core:core-ktx:1.15.0-rc01+1.0.0-sesl6+rev0")
+    implementation("sesl.androidx.appcompat:appcompat:1.7.0+1.0.34-sesl6+rev5")
+    //SESL6(OneUI 6) Material Components + Design Lib + Icons
+    implementation("sesl.com.google.android.material:material:1.12.0+1.0.23-sesl6+rev1")
+    implementation("io.github.tribalfs:oneui-design:0.1.0+oneui6")
     implementation("io.github.oneuiproject:icons:1.1.0")
 
-    implementation("androidx.core:core-splashscreen:1.0.1")
-    //noinspection GradleDependency
-    implementation("androidx.core:core-ktx:1.9.0")
-    //noinspection GradleDependency
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
+    implementation("androidx.core:core-splashscreen:1.2.0-alpha02")
     implementation(project(":libpianoview"))
+}
+
+configurations.implementation {
+    //Exclude official android jetpack modules
+    exclude("androidx.core", "core")
+    exclude("androidx.core", "core-ktx")
+    exclude("androidx.customview", "customview")
+    exclude("androidx.coordinatorlayout", "coordinatorlayout")
+    exclude("androidx.drawerlayout", "drawerlayout")
+    exclude("androidx.viewpager2", "viewpager2")
+    exclude("androidx.viewpager", "viewpager")
+    exclude("androidx.appcompat", "appcompat")
+    exclude("androidx.fragment", "fragment")
+    exclude("androidx.preference", "preference")
+    exclude("androidx.recyclerview", "recyclerview")
+    exclude("androidx.slidingpanelayout", "slidingpanelayout")
+    exclude("androidx.swiperefreshlayout", "swiperefreshlayout")
+
+    //Exclude official material components lib
+    exclude("com.google.android.material", "material")
 }
