@@ -34,7 +34,7 @@ class PianoKey private constructor(
         fingerID = -1
     }
 
-    fun contains(x: Int, y: Int): Boolean = areaOfKey?.any { it.contains(x, y) } ?: false
+    fun contains(x: Int, y: Int): Boolean = areaOfKey?.any { it.contains(x, y) } == true
 
     companion object {
         private fun keyExists(type: PianoKeyType, group: Int, indexInGroup: Int): Boolean {
