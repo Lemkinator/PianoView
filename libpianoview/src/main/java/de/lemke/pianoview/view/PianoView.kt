@@ -15,6 +15,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.SeekBar
+import androidx.appcompat.content.res.AppCompatResources
 import de.lemke.pianoview.R
 import de.lemke.pianoview.entity.Piano
 import de.lemke.pianoview.entity.PianoKey
@@ -80,7 +81,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
                     if (fromUser) seekbarScroll(progress)
                 }
             })
-            field?.background = context.getDrawable(R.drawable.piano_bar)
+            field?.background = AppCompatResources.getDrawable(context, R.drawable.piano_bar)
             field?.progressDrawable = null
         }
 
@@ -94,7 +95,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
                     Bitmap.Config.ARGB_8888
                 )
             val canvas = Canvas(bitmap)
-            val drawable = context.getDrawable(R.drawable.seekbar_thumb)
+            val drawable = AppCompatResources.getDrawable(context, R.drawable.seekbar_thumb)
             drawable!!.setBounds(0, 0, bitmap.width, bitmap.height)
             drawable.draw(canvas)
             it.thumb = BitmapDrawable(resources, bitmap)
@@ -125,7 +126,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         Log.d("PianoView", "onMeasure")
-        val whiteKeyDrawable = context.getDrawable(R.drawable.white_piano_key)
+        val whiteKeyDrawable = AppCompatResources.getDrawable(context, R.drawable.white_piano_key)
         val whiteKeyHeight = whiteKeyDrawable!!.intrinsicHeight
         val width = MeasureSpec.getSize(widthMeasureSpec)
         val heightMode = MeasureSpec.getMode(heightMeasureSpec)

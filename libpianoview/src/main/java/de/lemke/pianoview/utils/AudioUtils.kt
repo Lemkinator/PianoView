@@ -49,7 +49,6 @@ class AudioUtils(
         }
     }
 
-    @Suppress("unused")
     suspend fun playAllAsStartingPitch(volume: Float? = null) {
         withContext(Dispatchers.Default) {
             while (!initialized) {
@@ -80,7 +79,6 @@ class AudioUtils(
         pool.play(soundId, volume, volume, 1, 0, 1f)
     }
 
-    @Suppress("unused", "MemberVisibilityCanBePrivate")
     fun setVolume(volume: Float) {
         this.volume = volume.coerceIn(0f, 1f) * volume.coerceIn(0f, 1f)
         pianoKeys.forEach { it.soundPoolId?.let { id -> pool.setVolume(id, this.volume, this.volume) } }

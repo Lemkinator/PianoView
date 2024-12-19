@@ -14,7 +14,6 @@ class PianoKey private constructor(
     val noteName: NoteName
         get() = givenNoteName ?: NoteName.firstWith(type, group, indexInGroup)
 
-    @Suppress("unused")
     val germanNoteName: String get() = noteName.germanNoteName
 
     val soundResId
@@ -49,7 +48,6 @@ class PianoKey private constructor(
             }
         }
 
-        @Suppress("unused")
         fun createList(noteNames: String): List<PianoKey> {
             val list = mutableListOf<PianoKey>()
             noteNames.split(" ").forEach {
