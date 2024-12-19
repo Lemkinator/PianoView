@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.ScaleDrawable
+import androidx.appcompat.content.res.AppCompatResources
 import de.lemke.pianoview.R
 import de.lemke.pianoview.utils.predefinedSortedPianoKeys
 
@@ -21,8 +22,8 @@ class Piano {
     fun setDrawableAndBounds(context: Context, scale: Float, layoutWith: Int, visibleKeys: Int) {
         if (scale > 0) {
             uiInitialized = true
-            val blackDrawable = context.getDrawable(R.drawable.black_piano_key)
-            val whiteDrawable = context.getDrawable(R.drawable.white_piano_key)
+            val blackDrawable = AppCompatResources.getDrawable(context, R.drawable.black_piano_key)
+            val whiteDrawable = AppCompatResources.getDrawable(context, R.drawable.white_piano_key)
             val widthScale: Float = (layoutWith.toFloat() / visibleKeys.toFloat()) / whiteDrawable!!.intrinsicWidth.toFloat()
             blackKeyWidth = (blackDrawable!!.intrinsicWidth * widthScale).toInt()
             blackKeyHeight = (blackDrawable.intrinsicHeight * scale).toInt()
@@ -31,7 +32,7 @@ class Piano {
             pianoKeys.forEach {
                 if (it.type == PianoKeyType.WHITE) {
                     val drawable = ScaleDrawable(
-                        context.getDrawable(R.drawable.white_piano_key),
+                        AppCompatResources.getDrawable(context, R.drawable.white_piano_key),
                         0, scale, scale
                     ).drawable!!
                     setWhiteKeyDrawableBounds(it.group, it.indexInGroup, drawable)
@@ -39,7 +40,7 @@ class Piano {
                     it.areaOfKey = getWhitePianoKeyArea(it.group, it.indexInGroup, drawable)
                 } else {
                     val drawable = ScaleDrawable(
-                        context.getDrawable(R.drawable.black_piano_key),
+                        AppCompatResources.getDrawable(context, R.drawable.black_piano_key),
                         0, scale, scale
                     ).drawable!!
                     setBlackKeyDrawableBounds(it.group, it.indexInGroup, drawable)
