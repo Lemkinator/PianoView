@@ -10,9 +10,11 @@ import android.util.Log
 import de.lemke.pianoview.entity.PianoKey
 import de.lemke.pianoview.listener.LoadAudioMessage
 import de.lemke.pianoview.listener.OnLoadAudioListener
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 
 class AudioUtils(
@@ -29,6 +31,7 @@ class AudioUtils(
             .build()
     ).build()
     private var volume: Float = 1f
+    private var startingPitchesJob: Job? = null
 
     @Suppress("MemberVisibilityCanBePrivate")
     val initialized
@@ -49,8 +52,9 @@ class AudioUtils(
         }
     }
 
-    suspend fun playAllAsStartingPitch(volume: Float? = null) {
-        withContext(Dispatchers.Default) {
+    fun playAllAsStartingPitch(coroutineScope: CoroutineScope, volume: Float? = null): Job {
+        startingPitchesJob?.cancel()
+        return coroutineScope.launch(Dispatchers.Default) {
             while (!initialized) {
                 delay(500)
             }
@@ -63,7 +67,7 @@ class AudioUtils(
                 delay(500)
                 pianoKeys.forEach { playKey(it) }
             }
-        }
+        }.also { startingPitchesJob = it }
     }
 
     fun playKey(index: Int) = playKey(pianoKeys[index])
@@ -77,6 +81,13 @@ class AudioUtils(
 
     private fun play(soundId: Int) {
         pool.play(soundId, volume, volume, 1, 0, 1f)
+    }
+
+    fun stop() {
+        startingPitchesJob?.cancel()
+        if (initialized) {
+            pianoKeys.forEach { it.soundPoolId?.let { id -> pool.stop(id) } }
+        }
     }
 
     fun setVolume(volume: Float) {
