@@ -15,27 +15,14 @@
         android:theme="@style/Theme.PianoView"
         tools:targetApi="34">
 
-        <meta-data
-            android:name="SamsungBasicInteraction"
-            android:value="SEP10" />
-        <meta-data
-            android:name="com.samsung.android.icon_container.has_icon_container"
-            android:value="true" />
-        <meta-data
-            android:name="com.samsung.android.icon_container.feature_appicon"
-            android:value="ADAPTIVEICON_SHADOW" />
-
         <activity
             android:name=".MainActivity"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:configChanges="orientation|screenLayout|screenSize"
             android:exported="true"
             android:launchMode="singleTop"
             android:screenOrientation="sensorLandscape"
-            android:theme="@style/Theme.PianoView.Splash">
-            <meta-data
-                android:name="com.sec.android.app.launcher.icon_theme"
-                android:value="themeColor" />
-
+            android:theme="@style/Theme.PianoView.Splash"
+            tools:ignore="DiscouragedApi">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

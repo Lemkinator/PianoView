@@ -1,6 +1,3 @@
 <resources>
     <string name="app_name">Virtual Piano</string>
-    <string name="virtual_piano_loading_1">Piano is warming up…</string>
-    <string name="virtual_piano_loading_2">Piano is being tuned…</string>
-    <string name="virtual_piano_loading_3">Keys are being polished…</string>
 </resources>

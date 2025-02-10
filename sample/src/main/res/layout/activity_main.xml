@@ -1,69 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/background_color">
+    android:background="@color/background_color"
+    android:orientation="vertical">
 
     <LinearLayout
-        android:padding="10dp"
+        android:id="@+id/pianoControlLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="10dp"
         android:orientation="horizontal">
 
         <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/minus_button"
-        style="@style/ButtonStyle.Transparent"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@drawable/ic_oui_minus" />
+            android:id="@+id/minusButton"
+            style="@style/ButtonStyle.Transparent"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_oui_minus" />
 
         <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/scroll_left_arrow_button"
-        style="@style/ButtonStyle.Transparent"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@drawable/ic_oui_arrow_left" />
+            android:id="@+id/scrollLeftArrowButton"
+            style="@style/ButtonStyle.Transparent"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_oui_arrow_left" />
 
         <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/left_arrow_button"
-        style="@style/ButtonStyle.Transparent"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@drawable/ic_oui_keyboard_arrow_left" />
+            android:id="@+id/leftArrowButton"
+            style="@style/ButtonStyle.Transparent"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_oui_keyboard_arrow_left" />
 
         <SeekBar
-            android:id="@+id/piano_seekbar"
-            android:padding="0dp"
+            android:id="@+id/pianoSeekbar"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="match_parent"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:padding="0dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/right_arrow_button"
+            android:id="@+id/rightArrowButton"
             style="@style/ButtonStyle.Transparent"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_oui_keyboard_arrow_right" />
 
         <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/scroll_right_arrow_button"
+            android:id="@+id/scrollRightArrowButton"
             style="@style/ButtonStyle.Transparent"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_oui_arrow_right" />
 
         <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/plus_button"
+            android:id="@+id/plusButton"
             style="@style/ButtonStyle.Transparent"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_oui_add" />
 
         <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/close_button"
+            android:id="@+id/closeButton"
             style="@style/ButtonStyle.Transparent"
             android:layout_width="40dp"
             android:layout_height="40dp"
@@ -71,8 +71,7 @@
     </LinearLayout>
 
     <de.lemke.pianoview.view.PianoView
-        android:id="@+id/piano_view"
+        android:id="@+id/pianoView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </de.lemke.pianoview.view.PianoView>
+        android:layout_height="match_parent" />
 </LinearLayout>

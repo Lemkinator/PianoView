@@ -1,6 +1,5 @@
 <resources>
-
-    <style name="Theme.PianoView" parent="OneUITheme">
+    <style name="Theme.PianoView" parent="Theme.AppCompat.NoActionBar">
         <item name="colorPrimary">@color/primary_color</item>
         <item name="colorPrimaryDark">@color/primary_color</item>
         <item name="android:windowNoTitle">true</item>
@@ -8,10 +7,9 @@
     </style>
 
     <style name="Theme.NAKBuch.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/oui_round_and_bgcolor</item>
+        <item name="windowSplashScreenBackground">@color/background_color</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
         <item name="windowSplashScreenAnimationDuration">700</item>
-        <!--item name="windowSplashScreenIconBackgroundColor">@color/oui_background_color</item-->
         <item name="postSplashScreenTheme">@style/Theme.PianoView</item>
     </style>
 
@@ -21,5 +19,4 @@
         <item name="android:drawableTint">@color/text_color</item>
         <item name="tint">@color/text_color</item>
     </style>
-
 </resources>

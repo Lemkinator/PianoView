@@ -55,35 +55,11 @@ android {
 }
 
 dependencies {
-    //SESL6(OneUI 6) Android Jetpack
-    implementation("sesl.androidx.core:core:1.15.0+1.0.11-sesl6+rev0")
-    implementation("sesl.androidx.core:core-ktx:1.15.0+1.0.0-sesl6+rev0")
-    implementation("sesl.androidx.appcompat:appcompat:1.7.0+1.0.34-sesl6+rev8")
-    //SESL6(OneUI 6) Material Components + Design Lib + Icons
-    implementation("sesl.com.google.android.material:material:1.12.0+1.0.23-sesl6+rev3")
-    implementation("io.github.tribalfs:oneui-design:0.5.0+oneui6")
+    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("com.google.android.material:material:1.12.0")
     implementation("io.github.oneuiproject:icons:1.1.0")
 
     implementation("androidx.core:core-splashscreen:1.2.0-alpha02")
     implementation(project(":libpianoview"))
-}
-
-configurations.implementation {
-    //Exclude official android jetpack modules
-    exclude("androidx.core", "core")
-    exclude("androidx.core", "core-ktx")
-    exclude("androidx.customview", "customview")
-    exclude("androidx.coordinatorlayout", "coordinatorlayout")
-    exclude("androidx.drawerlayout", "drawerlayout")
-    exclude("androidx.viewpager2", "viewpager2")
-    exclude("androidx.viewpager", "viewpager")
-    exclude("androidx.appcompat", "appcompat")
-    exclude("androidx.fragment", "fragment")
-    exclude("androidx.preference", "preference")
-    exclude("androidx.recyclerview", "recyclerview")
-    exclude("androidx.slidingpanelayout", "slidingpanelayout")
-    exclude("androidx.swiperefreshlayout", "swiperefreshlayout")
-
-    //Exclude official material components lib
-    exclude("com.google.android.material", "material")
 }
