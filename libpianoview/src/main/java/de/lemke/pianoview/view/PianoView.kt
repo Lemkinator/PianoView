@@ -101,6 +101,7 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
     /**
      * Note: Setting this, will destroy the current [AudioUtils] instance and create a new one, so audio will be reloaded.
      */
+    @Suppress("unused")
     var audioMaxStreams: Int?
         get() = audioUtils.maxStreams
         set(value) {
