@@ -3,11 +3,9 @@ package de.lemke.pianoview.view
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.drawable.BitmapDrawable
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.DisplayMetrics
@@ -16,6 +14,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.SeekBar
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toDrawable
 import de.lemke.pianoview.R
 import de.lemke.pianoview.entity.Piano
 import de.lemke.pianoview.entity.PianoKey
@@ -88,17 +88,12 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
     private fun setSeekBarThumbWidth() {
         seekBar?.let {
             val thumbOffset = 21 * (resources.displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
-            val bitmap =
-                Bitmap.createBitmap(
-                    (it.measuredWidth / 52 * visibleKeys).coerceAtLeast(1),
-                    it.measuredHeight.coerceAtLeast(1),
-                    Bitmap.Config.ARGB_8888
-                )
+            val bitmap = createBitmap((it.measuredWidth / 52 * visibleKeys).coerceAtLeast(1), it.measuredHeight.coerceAtLeast(1))
             val canvas = Canvas(bitmap)
             val drawable = AppCompatResources.getDrawable(context, R.drawable.seekbar_thumb)
             drawable!!.setBounds(0, 0, bitmap.width, bitmap.height)
             drawable.draw(canvas)
-            it.thumb = BitmapDrawable(resources, bitmap)
+            it.thumb = bitmap.toDrawable(resources)
             it.thumbOffset = thumbOffset
         }
     }
@@ -106,7 +101,6 @@ class PianoView @JvmOverloads constructor(private val context: Context, attrs: A
     /**
      * Note: Setting this, will destroy the current [AudioUtils] instance and create a new one, so audio will be reloaded.
      */
-    @Suppress("unused")
     var audioMaxStreams: Int?
         get() = audioUtils.maxStreams
         set(value) {

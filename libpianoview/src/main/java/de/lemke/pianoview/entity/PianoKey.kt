@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package de.lemke.pianoview.entity
 
 import android.graphics.Rect

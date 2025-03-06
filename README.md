@@ -7,7 +7,7 @@ A custom view on Android,which can help you easily to create a piano on Android.
 ## Features
 - Beautiful UI.
 - Good flexibility,which can use in different devices and layout.
-- Mutil-Touch.
+- Multi-Touch.
 - Support piano sound.
 
 ## Gradle Dependency
@@ -41,7 +41,7 @@ In the `XML` layout:
     android:layout_height="match_parent"/>
 ```
 
-For more reference,plaese see the [sample](./sample).
+For more reference,please see the [sample](./sample).
 
 ## Document
 

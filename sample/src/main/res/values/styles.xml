@@ -6,7 +6,7 @@
         <item name="android:windowFullscreen">true</item>
     </style>
 
-    <style name="Theme.NAKBuch.Splash" parent="Theme.SplashScreen">
+    <style name="Theme.PianoView.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/background_color</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
         <item name="windowSplashScreenAnimationDuration">700</item>

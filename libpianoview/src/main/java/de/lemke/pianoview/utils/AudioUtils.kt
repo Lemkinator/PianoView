@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package de.lemke.pianoview.utils
 
 import android.content.Context
