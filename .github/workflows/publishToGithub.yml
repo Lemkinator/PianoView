@@ -1,0 +1,57 @@
+name: Publish Piano View Package
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'gradle/libs.versions.toml' ]
+
+jobs:
+  check-and-publish:
+    env:
+      GH_USERNAME: ${{ secrets.GH_USERNAME }}
+      GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle and wrapper
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Check if version changed
+        id: check_version
+        run: |
+          # Get the previous commit hash on main
+          PREV_COMMIT=$(git rev-parse HEAD^)
+          # Extract the line from both versions, Use xargs to trim whitespace
+          OLD_LINE=$(git show $PREV_COMMIT:gradle/libs.versions.toml | grep '^pianoview =' | xargs)
+          NEW_LINE=$(grep '^pianoview =' gradle/libs.versions.toml | xargs)
+          echo "Old: $OLD_LINE"
+          echo "New: $NEW_LINE"
+          if [ "$OLD_LINE" != "$NEW_LINE" ] && [ -n "$NEW_LINE" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Publish to GitHub Packages
+        if: steps.check_version.outputs.changed == 'true'
+        run: ./gradlew publishAllPublicationsToGitHubPackagesRepository

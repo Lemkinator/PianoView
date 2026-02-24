@@ -14,6 +14,7 @@ class PianoKey private constructor(
     val noteName: NoteName
         get() = givenNoteName ?: NoteName.firstWith(type, group, indexInGroup)
 
+    @Suppress("unused")
     val germanNoteName: String get() = noteName.germanNoteName
 
     val soundResId
@@ -48,6 +49,7 @@ class PianoKey private constructor(
             }
         }
 
+        @Suppress("unused")
         fun createList(noteNames: String): List<PianoKey> {
             val list = mutableListOf<PianoKey>()
             noteNames.split(" ").forEach {
@@ -128,12 +130,11 @@ class PianoKey private constructor(
                     }
                 }
             }
-            if (keyType == PianoKeyType.BLACK && group == 0 && indexInGroup == 4) {
-                indexInGroup = 0
-            } else if (keyType == PianoKeyType.WHITE && group == 0 && indexInGroup == 5) {
-                indexInGroup = 0
-            } else if (keyType == PianoKeyType.WHITE && group == 0 && indexInGroup == 6) {
-                indexInGroup = 1
+            when (keyType) {
+                PianoKeyType.BLACK if group == 0 && indexInGroup == 4 -> indexInGroup = 0
+                PianoKeyType.WHITE if group == 0 && indexInGroup == 5 -> indexInGroup = 0
+                PianoKeyType.WHITE if group == 0 && indexInGroup == 6 -> indexInGroup = 1
+                else -> {}
             }
             if (!keyExists(keyType, group, indexInGroup)) {
                 Log.e("PianoKey", "key does not exist: $keyType, $group, $indexInGroup")

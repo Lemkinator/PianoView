@@ -1,0 +1,26 @@
+[versions]
+#lib version
+#noinspection UnusedVersionCatalogEntry
+pianoview = "1.0.1"
+
+appcompat = "1.7.1"
+core-ktx = "1.17.0"
+core-splashscreen = "1.2.0"
+gradle = "9.0.1"
+icons = "1.1.0"
+kotlin = "2.3.10"
+
+[libraries]
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
+core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "core-splashscreen" }
+icons = { module = "io.github.oneuiproject:icons", version.ref = "icons" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "gradle" }
+android-library = { id = "com.android.library", version.ref = "gradle" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+maven-publish = { id = "maven-publish" }
+signing = { id = "signing" }
+
+[bundles]

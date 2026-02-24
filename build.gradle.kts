@@ -1,4 +1,11 @@
+import com.android.build.api.dsl.CommonExtension
 import java.util.Properties
+
+plugins {
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.android) apply false
+}
 
 /**
  * Converts a camelCase or mixedCase string to ENV_VAR_STYLE (uppercase with underscores).
@@ -25,42 +32,30 @@ fun getProperty(key: String): String =
 val githubUsername = getProperty("ghUsername")
 val githubAccessToken = getProperty("ghAccessToken")
 
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.21")
-        classpath("com.android.tools.build:gradle:8.10.1")
-    }
-}
-
 allprojects {
     repositories {
         google()
         mavenCentral()
+        maven("https://jitpack.io")
     }
 }
 
-plugins {
-    id("com.android.application") version "8.2.2" apply false
-    id("com.android.library") version "8.2.2" apply false
-    id("org.jetbrains.kotlin.android") version "2.1.21" apply false
-}
-
-val groupId = "io.github.lemkinator"
-val artifact = "piano-view"
-val versionName = "1.0.0"
-
 subprojects {
+    plugins.withId("com.android.base") {
+        project.extensions.findByType(CommonExtension::class.java)?.apply {
+            compileOptions.apply {
+                sourceCompatibility = JavaVersion.VERSION_21
+                targetCompatibility = JavaVersion.VERSION_21
+            }
+        }
+    }
     afterEvaluate {
-        if (!project.plugins.hasPlugin("maven-publish")) {
+        if (!project.plugins.hasPlugin(libs.plugins.maven.publish.get().pluginId)) {
             return@afterEvaluate
         }
-        group = groupId
-        version = versionName
+        val artifact = "piano-view"
+        group = "io.github.lemkinator"
+        version = libs.versions.pianoview.get()
         println("Evaluated $group:$artifact:$version")
         project.extensions.configure<PublishingExtension>("publishing") {
             publications {
@@ -71,6 +66,7 @@ subprojects {
                     }
                     pom {
                         name = artifact
+                        description = "A customizable piano view for Android, written in Kotlin."
                         url = "https://github.com/Lemkinator/PianoView"
                         developers {
                             developer {
@@ -86,7 +82,7 @@ subprojects {
                             developerConnection = "scm:git:ssh://github.com/Lemkinator/PianoView.git"
                             url = "https://github.com/Lemkinator/PianoView"
                         }
-                        issueManagement{
+                        issueManagement {
                             system = "GitHub Issues"
                             url = "https://github.com/Lemkinator/PianoView/issues"
                         }

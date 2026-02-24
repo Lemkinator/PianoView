@@ -1,12 +1,14 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.android.application)
+}
+fun com.android.build.api.dsl.ApplicationBuildType.addConstant(name: String, value: String) {
+    manifestPlaceholders += mapOf(name to value)
+    buildConfigField("String", name, "\"$value\"")
 }
 
 android {
     namespace = "de.lemke.pianoviewsample"
     compileSdk = 36
-
     defaultConfig {
         applicationId = "de.lemke.pianoviewsample"
         minSdk = 26
@@ -14,49 +16,33 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
-
     buildTypes {
         release {
             isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            addConstant("APP_NAME", "Virtual Piano")
             ndk { debugSymbolLevel = "FULL" }
         }
         debug {
             isDebuggable = true
             isMinifyEnabled = false
             isShrinkResources = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            applicationIdSuffix = ".debug"
+            addConstant("APP_NAME", "Virtual Piano (Debug)")
         }
     }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
-
-    kotlinOptions {
-        jvmTarget = "21"
-    }
-
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
-
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
+    packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.16.0")
-    implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("io.github.oneuiproject:icons:1.1.0")
-
-    implementation("androidx.core:core-splashscreen:1.2.0-beta02")
+    implementation(libs.core.ktx)
+    implementation(libs.appcompat)
+    implementation(libs.icons)
+    implementation(libs.core.splashscreen)
     implementation(project(":libpianoview"))
 }

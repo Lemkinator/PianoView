@@ -52,6 +52,7 @@ class AudioUtils(
         }
     }
 
+    @Suppress("unused")
     fun playAllAsStartingPitch(coroutineScope: CoroutineScope, volume: Float? = null): Job {
         startingPitchesJob?.cancel()
         return coroutineScope.launch(Dispatchers.Default) {
@@ -83,6 +84,7 @@ class AudioUtils(
         pool.play(soundId, volume, volume, 1, 0, 1f)
     }
 
+    @Suppress("unused")
     fun stop() {
         startingPitchesJob?.cancel()
         if (initialized) {
