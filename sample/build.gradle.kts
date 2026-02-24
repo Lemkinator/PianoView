@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
 }
+
 fun com.android.build.api.dsl.ApplicationBuildType.addConstant(name: String, value: String) {
     manifestPlaceholders += mapOf(name to value)
     buildConfigField("String", name, "\"$value\"")
